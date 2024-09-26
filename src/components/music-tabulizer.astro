@@ -1,0 +1,181 @@
+---
+import PlayButton from "./music-tabulizer/play-button.astro";
+import PlayingBars from "./music-tabulizer/playing-bars.astro";
+import LoadingCircle from "./music-tabulizer/loading-circle.astro";
+import RemoveButton from "./music-tabulizer/remove-button.astro";
+---
+
+<table is="music-tabulizer">
+  <tbody>
+    <template>
+      <tr>
+        <td>
+          <div class="play-button-container">
+            <PlayButton class="play-button" />
+          </div>
+        </td>
+        <td class="indicator">
+          <PlayingBars class="playing-bars" />
+          <LoadingCircle class="loading-circle" />
+        </td>
+        <td class="title"></td>
+        <td class="duration"></td>
+        <td class="action">
+          <RemoveButton class="remove-button" />
+        </td>
+      </tr>
+    </template>
+  </tbody>
+</table>
+
+<script>
+  import { Music } from "../models/music";
+  import { formatSec } from "../utils/format";
+  import { queryMusicPlayer } from "../utils/query";
+  import type { PlaiyingBarsElement } from "./music-tabulizer/playing-bars.astro.0.mts";
+  import type { LoadingCircleElement } from "./music-tabulizer/loading-circle.astro.0.mts";
+
+  export class MusicTabulizerElement extends HTMLTableElement {
+    #musicPlayer = queryMusicPlayer();
+
+    #tbody = this.querySelector("tbody")!;
+    #trTemplate = this.querySelector("template")!;
+
+    #playingMusic: Music | undefined;
+
+    async add(files: FileList) {
+      const willMaybeTrFragments = [...files].map(async (file) => {
+        const music = await Music.tryFrom(file);
+
+        // TODO: make some announcement
+        if (!music) return;
+
+        const trFragment = this.#trTemplate.content.cloneNode(true) as DocumentFragment;
+        const [first, indicator, title, duration, action] = trFragment.querySelectorAll("td")!;
+
+        first.querySelector(".play-button")!.addEventListener("click", async () => {
+          this.#tbody.setAttribute("inert", "");
+
+          if (this.#playingMusic) {
+            this.#queryTableRow(this.#playingMusic)
+              ?.querySelector<PlaiyingBarsElement>(".playing-bars")
+              ?.stop();
+          }
+
+          const playingBars = indicator.querySelector<PlaiyingBarsElement>(".playing-bars")!;
+          const loadingCircle = indicator.querySelector<LoadingCircleElement>(".loading-circle")!;
+
+          try {
+            playingBars.hide(), loadingCircle.show();
+            await this.#musicPlayer.play(music);
+            loadingCircle.hide(), playingBars.play();
+            this.#playingMusic = music;
+          } catch {
+            loadingCircle.hide();
+            // TODO: avoid blocking
+            alert("Sorry, failed to load the music file.\nTry another browser.");
+          } finally {
+            this.#tbody.removeAttribute("inert");
+          }
+        });
+
+        const { format, common } = music.metadata;
+
+        title.textContent = common.title?.trim() || music.file.name;
+
+        if (format.duration) {
+          duration.textContent = formatSec(format.duration);
+        }
+
+        action.querySelector("button")!.addEventListener("click", () => {
+          this.#queryTableRow(music)?.remove();
+          music.removeInfo();
+        });
+
+        trFragment.firstElementChild!.setAttribute("data-id", music.id);
+
+        return trFragment;
+      });
+
+      const maybeTrFragments = await Promise.all(willMaybeTrFragments);
+      const trFragments = maybeTrFragments.filter((mtrf) => !!mtrf);
+
+      this.#tbody.prepend(...trFragments);
+    }
+
+    togglePlay() {
+      if (this.#playingMusic) {
+        this.#queryTableRow(this.#playingMusic)
+          ?.querySelector<PlaiyingBarsElement>(".playing-bars")
+          ?.pause();
+      }
+    }
+
+    #queryTableRow(music: Music) {
+      return this.querySelector(`tr[data-id=${music.id}]`);
+    }
+  }
+
+  customElements.define("music-tabulizer", MusicTabulizerElement, { extends: "table" });
+</script>
+
+<style>
+  table {
+    width: 100%;
+    text-align: end;
+    border-collapse: collapse;
+    table-layout: fixed;
+
+    tbody {
+      tr {
+        position: relative;
+        height: 1.75rem;
+        scale: 1; /* Without this, the spacing between rows would be slightly odd. why? */
+
+        &:hover {
+          background-color: #3c3c3c;
+          filter: brightness(1.2);
+        }
+
+        td {
+          white-space: nowrap;
+          overflow-x: hidden;
+          text-overflow: ellipsis;
+          padding-block: 0.2rem;
+          padding-inline-start: 0.25rem;
+          height: 100%;
+
+          &:first-of-type {
+            width: 0%;
+
+            .play-button-container {
+              position: absolute;
+              inset: 0;
+              z-index: 10;
+            }
+          }
+
+          &.indicator {
+            position: relative;
+            min-width: 10%;
+            padding: 0.25rem;
+          }
+
+          &.title {
+            width: 60%;
+            text-align: start;
+          }
+
+          &.duration {
+            width: 15%;
+          }
+
+          &.action {
+            width: 15%;
+            padding-inline-end: 0.125rem;
+          }
+        }
+      }
+    }
+  }
+</style>

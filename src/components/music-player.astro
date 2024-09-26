@@ -1,0 +1,94 @@
+---
+import TitleDisplay from "./music-player/title-display.astro";
+import PlayControl from "./music-player/play-control.astro";
+import VolumeControl from "./music-player/volume-control.astro";
+import TempoControl from "./music-player/tempo-control.astro";
+---
+
+<div is="music-player">
+  <TitleDisplay class="title-display" />
+  <PlayControl class="play-control" />
+  <VolumeControl class="volume-control" />
+  <TempoControl class="tempo-control" />
+</div>
+
+<script>
+  import type { Music } from "../models/music";
+  import { MusicPlayer } from "../models/music-player";
+  import { queryMusicTabulizer } from "../utils/query";
+  import type { TitleDisplayElement } from "./music-player/title-display.astro.0.mts";
+  import type { PlayControlElement } from "./music-player/play-control.astro.0.mts";
+  import type { VolumeControlElement } from "./music-player/volume-control.astro.0.mts";
+  import type { TempoControlElement } from "./music-player/tempo-control.astro.0.mts";
+
+  export class MusicPlayerElement extends HTMLDivElement {
+    #musicTabulizer = queryMusicTabulizer();
+
+    #titleDisplay: TitleDisplayElement = this.querySelector(".title-display")!;
+    #playControl: PlayControlElement = this.querySelector(".play-control")!;
+    #volumeControl: VolumeControlElement = this.querySelector(".volume-control")!;
+    #tempoControl: TempoControlElement = this.querySelector(".tempo-control")!;
+
+    #musicPlayer = new MusicPlayer();
+    #loadedMusic: Music | undefined;
+    #updateDisplayRequestId = 0;
+
+    set volume(volume: number) {
+      this.#musicPlayer.volume = volume;
+      this.#loadedMusic?.updateSettings({ volume });
+    }
+
+    set tempo(tempo: number) {
+      this.#musicPlayer.tempo = tempo;
+      this.#loadedMusic?.updateSettings({ tempo });
+    }
+
+    async play(music: Music) {
+      this.#stopUpdateDisplay();
+      await this.#musicPlayer.play(music);
+      this.#titleDisplay.load(music);
+      this.#playControl.load(music);
+      this.#volumeControl.load(music);
+      this.#tempoControl.load(music);
+      this.#loadedMusic = music;
+      this.#startUpdateDisplay();
+    }
+
+    async togglePlay() {
+      await this.#musicPlayer.togglePlay();
+      this.#musicTabulizer.togglePlay();
+    }
+
+    async seek(toSec: number) {
+      await this.#musicPlayer.seek(toSec);
+    }
+
+    toggleMute() {
+      this.#musicPlayer.toggleMute();
+    }
+
+    #stopUpdateDisplay() {
+      cancelAnimationFrame(this.#updateDisplayRequestId);
+    }
+
+    #startUpdateDisplay() {
+      this.#updateDisplayRequestId = requestAnimationFrame(this.#updateDisplay.bind(this));
+    }
+
+    #updateDisplay = () => {
+      this.#playControl.update(this.#musicPlayer.currentTime ?? 0);
+      this.#updateDisplayRequestId = requestAnimationFrame(this.#updateDisplay.bind(this));
+    };
+  }
+
+  customElements.define("music-player", MusicPlayerElement, { extends: "div" });
+</script>
+
+<style>
+  div[is="music-player"] {
+    display: flex;
+    flex-direction: column;
+    gap: 0.375rem;
+    font-size: 1.125rem;
+  }
+</style>

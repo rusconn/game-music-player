@@ -1,0 +1,57 @@
+---
+import type { HTMLAttributes } from "astro/types";
+
+type Props = Omit<HTMLAttributes<"div">, "is">;
+
+const { props } = Astro;
+---
+
+<div is="loading-circle" {...props}>
+  <div class="loader hidden"></div>
+</div>
+
+<script>
+  export class LoadingCircleElement extends HTMLDivElement {
+    #loader = this.querySelector("div")!;
+
+    show() {
+      this.#loader.classList.remove("hidden");
+    }
+
+    hide() {
+      this.#loader.classList.add("hidden");
+    }
+  }
+
+  customElements.define("loading-circle", LoadingCircleElement, { extends: "div" });
+</script>
+
+<style>
+  div {
+    display: flex;
+    align-items: center;
+    position: absolute;
+
+    .loader {
+      height: 1rem;
+      aspect-ratio: 1;
+      border: 3px solid currentColor;
+      border-top: 3px solid #555;
+      border-radius: 100vmax;
+      animation: spin 1s linear infinite;
+
+      &.hidden {
+        display: none;
+      }
+    }
+  }
+
+  @keyframes spin {
+    0% {
+      transform: rotate(0deg);
+    }
+    100% {
+      transform: rotate(360deg);
+    }
+  }
+</style>

@@ -1,0 +1,197 @@
+---
+import type { ComponentProps } from "astro/types";
+
+import ControlContainer from "./control-primitives/container.astro";
+import ControlButton from "./control-primitives/button.astro";
+import ControlIcon from "./control-primitives/icon.astro";
+import ControlBar from "./control-primitives/bar.astro";
+
+type Props = Omit<ComponentProps<typeof ControlContainer>, "is">;
+
+const { props } = Astro;
+---
+
+<ControlContainer is="play-control" {...props}>
+  <audio src="5-seconds-of-silence.mp3" loop></audio>
+  <ControlButton class="play-pause" disabled>
+    <ControlIcon class="play-icon" iconId="ph--play-fill" />
+    <ControlIcon class="pause-icon" iconId="ph--pause-fill" hidden />
+  </ControlButton>
+  <ControlBar class="seek-bar" min="0" max="100" value="0" step="any" disabled />
+  <span class="current-time">0:00</span><span>/</span><span class="duration">0:00</span>
+</ControlContainer>
+
+<script>
+  import type { Music } from "../../models/music";
+  import { formatSec } from "../../utils/format";
+  import { queryMusicPlayer } from "../../utils/query";
+  import type { ControlBarElement } from "./control-primitives/bar.astro.0.mts";
+  import type { ControlButtonElement } from "./control-primitives/button.astro.0.mts";
+  import type { ControlIconElement } from "./control-primitives/icon.astro.0.mts";
+
+  export class PlayControlElement extends HTMLDivElement {
+    #musicPlayer = queryMusicPlayer();
+
+    #playPause: ControlButtonElement = this.querySelector(".play-pause")!;
+    #playIcon: ControlIconElement = this.#playPause.querySelector(".play-icon")!;
+    #pauseIcon: ControlIconElement = this.#playPause.querySelector(".pause-icon")!;
+    #seekBar: ControlBarElement = this.querySelector(".seek-bar")!;
+    #currentTime: HTMLSpanElement = this.querySelector(".current-time")!;
+    #duration: HTMLSpanElement = this.querySelector(".duration")!;
+    #audioForMediaSession = this.querySelector("audio")!;
+
+    #duraionValue: Music["metadata"]["format"]["duration"];
+    #isUserSeeking = false;
+    #enabled = false;
+
+    #handlePlayKeyDown = (e: KeyboardEvent) => {
+      // shouldn't we override the spacebar behavior??
+      if (e.key === "p" || e.key === " ") {
+        e.preventDefault();
+        this.#playPause.click();
+      }
+    };
+
+    #handleSeekKeyDown = async (e: KeyboardEvent) => {
+      const oldValue = Number(this.#seekBar.value);
+      const max = Number(this.#seekBar.max);
+
+      let newValue;
+      if (e.key === "ArrowLeft") {
+        e.preventDefault();
+        if (this.#enabled) {
+          newValue = Math.max(0, oldValue - 5);
+        }
+      }
+      if (e.key === "ArrowRight") {
+        e.preventDefault();
+        if (this.#enabled) {
+          newValue = Math.min(max, oldValue + 5);
+        }
+      }
+
+      if (newValue != null) {
+        const fixedNewValue = newValue.toFixed(2);
+        await this.#musicPlayer.seek(newValue);
+        this.#seekBar.value = fixedNewValue;
+        this.#currentTime.textContent = formatSec(newValue);
+      }
+    };
+
+    constructor() {
+      super();
+
+      this.#playPause.addEventListener("click", async () => {
+        await this.#musicPlayer.togglePlay();
+        this.#playIcon.toggle();
+        this.#pauseIcon.toggle();
+        this.#toggleMediaSession();
+      });
+
+      this.#seekBar.addEventListener("input", (e) => {
+        const input = e.target as HTMLInputElement;
+        const second = Number(input.value);
+        this.#currentTime.textContent = formatSec(second);
+      });
+
+      this.#seekBar.addEventListener("change", async (e) => {
+        const input = e.target as HTMLInputElement;
+        const second = Number(input.value);
+        await this.#musicPlayer.seek(second);
+        this.#currentTime.textContent = formatSec(second);
+      });
+
+      this.#seekBar.addEventListener("mousedown", () => {
+        this.#isUserSeeking = true;
+      });
+
+      this.#seekBar.addEventListener("mouseup", () => {
+        this.#isUserSeeking = false;
+      });
+
+      this.#seekBar.addEventListener("touchstart", () => {
+        this.#isUserSeeking = true;
+      });
+
+      this.#seekBar.addEventListener("touchend", () => {
+        this.#isUserSeeking = false;
+      });
+
+      this.#initMediaSession();
+    }
+
+    connectedCallback() {
+      document.addEventListener("keydown", this.#handlePlayKeyDown);
+      document.addEventListener("keydown", this.#handleSeekKeyDown);
+    }
+
+    disconnectedCallback() {
+      document.removeEventListener("keydown", this.#handlePlayKeyDown);
+      document.removeEventListener("keydown", this.#handleSeekKeyDown);
+    }
+
+    load(music: Music) {
+      this.#playPause.enable();
+      this.#playIcon.hide();
+      this.#pauseIcon.show();
+      this.#seekBar.enable();
+      this.#seekBar.value = "0";
+      this.#currentTime.textContent = "0:00";
+
+      const { duration } = music.metadata.format;
+      if (duration != null) {
+        this.#seekBar.max = duration.toString();
+        this.#duration.textContent = formatSec(duration);
+        this.#duraionValue = duration;
+      }
+
+      this.#loadMediaSession(music);
+      this.#enabled = true;
+    }
+
+    update(second: number) {
+      this.#currentTime.textContent = formatSec(second);
+      if (this.#duraionValue && !this.#isUserSeeking) {
+        this.#seekBar.value = second.toString();
+      }
+    }
+
+    #initMediaSession() {
+      navigator.mediaSession.setActionHandler("play", () => {
+        this.#playPause.click();
+      });
+      navigator.mediaSession.setActionHandler("pause", () => {
+        this.#playPause.click();
+      });
+    }
+
+    #loadMediaSession({ file, metadata }: Music) {
+      this.#audioForMediaSession.play();
+      navigator.mediaSession.playbackState = "playing";
+
+      navigator.mediaSession.metadata = new MediaMetadata({
+        title: metadata.common.title ?? file.name,
+        artist: metadata.common.artist,
+        album: metadata.common.album,
+      });
+
+      navigator.mediaSession.setPositionState({
+        position: 0,
+        duration: 0,
+      });
+    }
+
+    #toggleMediaSession() {
+      this.#audioForMediaSession.paused //
+        ? this.#audioForMediaSession.play()
+        : this.#audioForMediaSession.pause();
+
+      navigator.mediaSession.playbackState =
+        navigator.mediaSession.playbackState === "paused" //
+          ? "playing"
+          : "paused";
+    }
+  }
+
+  customElements.define("play-control", PlayControlElement, { extends: "div" });
+</script>

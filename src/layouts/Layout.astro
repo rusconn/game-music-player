@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="description" content="Music player for game music files such as ogg." />
+    <meta name="viewport" content="width=device-width" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" sizes="any" />
+    <title>Game Music Player</title>
+  </head>
+  <body>
+    <slot />
+  </body>
+</html>
+
+<script>
+  import { storage } from "../models/storage/mod";
+
+  document.addEventListener(
+    "DOMContentLoaded",
+    () => {
+      storage.migrateIfNeeded();
+    },
+    { once: true }
+  );
+</script>
+
+<style is:global>
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+</style>
+
+<style>
+  html {
+    font-family: monospace, system-ui, sans-serif;
+    font-size: 16px;
+    line-height: 1.375;
+  }
+
+  body {
+    font-size: clamp(0.875rem, 0.83rem + 0.23svw, 1rem);
+    background-color: #363636;
+    color: white;
+    user-select: none;
+  }
+</style>
