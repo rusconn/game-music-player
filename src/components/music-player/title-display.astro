@@ -1,0 +1,60 @@
+---
+import type { HTMLAttributes } from "astro/types";
+
+type Props = Omit<HTMLAttributes<"div">, "is">;
+
+const { props } = Astro;
+---
+
+<div is="title-display" {...props}>
+  <span class="title">(No music selected)</span>
+  <span class="artist-and-album">-</span>
+</div>
+
+<script>
+  import type { Music } from "../../models/music";
+
+  export class TitleDisplayElement extends HTMLDivElement {
+    #title: HTMLSpanElement = this.querySelector(".title")!;
+    #artistAndAlbum: HTMLSpanElement = this.querySelector(".artist-and-album")!;
+
+    load({ file, metadata }: Music) {
+      const { common } = metadata;
+      const { title, artist, album } = common;
+
+      this.#title.textContent = title?.trim() || file.name;
+
+      const filtered = [artist?.trim(), album?.trim()]
+        .filter((x) => x != null)
+        .filter((x) => x !== "");
+
+      this.#artistAndAlbum.textContent =
+        filtered.length === 2 //
+          ? filtered.join(" - ")
+          : filtered.length === 1
+            ? filtered[0]
+            : "-";
+    }
+  }
+
+  customElements.define("title-display", TitleDisplayElement, { extends: "div" });
+</script>
+
+<style>
+  div[is="title-display"] {
+    display: flex;
+    flex-direction: column;
+    white-space: nowrap;
+    text-align: center;
+
+    span {
+      overflow-x: hidden;
+      text-overflow: ellipsis;
+      user-select: all;
+
+      &.artist-and-album {
+        color: #aaa;
+      }
+    }
+  }
+</style>

@@ -1,0 +1,53 @@
+---
+import Layout from "../layouts/Layout.astro";
+import MusicPlayer from "../components/music-player.astro";
+import MusicUploader from "../components/music-uploader.astro";
+import MusicTabulizer from "../components/music-tabulizer.astro";
+---
+
+<Layout>
+  <main>
+    <div class="music-player">
+      <div class="container">
+        <MusicPlayer />
+      </div>
+    </div>
+    <div class="music-manager">
+      <div class="container">
+        <MusicUploader />
+        <MusicTabulizer />
+      </div>
+    </div>
+  </main>
+</Layout>
+
+<style>
+  main {
+    display: grid;
+    grid-template-rows: auto 1fr;
+    height: 100svh;
+  }
+
+  .music-player {
+    max-width: 100svw;
+    background-color: #282828;
+    color: #efefef;
+    overflow-y: auto;
+    scrollbar-color: #282828 transparent;
+    scrollbar-gutter: stable both-edges;
+  }
+
+  .music-manager {
+    max-width: 100svw;
+    overflow-x: hidden;
+    overflow-y: auto;
+    scrollbar-color: #161616 transparent;
+    scrollbar-gutter: stable both-edges;
+  }
+
+  .container {
+    margin-inline: auto;
+    width: clamp(20rem, 100%, 30rem);
+    padding: 1.25rem;
+  }
+</style>

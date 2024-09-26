@@ -1,0 +1,100 @@
+---
+import type { ComponentProps } from "astro/types";
+
+import ControlContainer from "./control-primitives/container.astro";
+import ControlButton from "./control-primitives/button.astro";
+import ControlIcon from "./control-primitives/icon.astro";
+import ControlBar from "./control-primitives/bar.astro";
+
+type Props = Omit<ComponentProps<typeof ControlContainer>, "is">;
+
+const { props } = Astro;
+---
+
+<ControlContainer is="tempo-control" {...props}>
+  <ControlButton class="tempo-button" disabled>
+    <ControlIcon class="tempo-icon" iconId="mdi--metronome" />
+  </ControlButton>
+  <ControlBar class="tempo-bar" min="0.5" max="1.5" value="1" step="0.01" disabled />
+  <span class="tempo-text">x1.00</span>
+</ControlContainer>
+
+<script>
+  import type { Music } from "../../models/music";
+  import { queryMusicPlayer } from "../../utils/query";
+  import type { ControlBarElement } from "./control-primitives/bar.astro.0.mts";
+  import type { ControlButtonElement } from "./control-primitives/button.astro.0.mts";
+
+  export class TempoControlElement extends HTMLDivElement {
+    #musicPlayer = queryMusicPlayer();
+
+    #tempoButton: ControlButtonElement = this.querySelector(".tempo-button")!;
+    #tempoBar: ControlBarElement = this.querySelector(".tempo-bar")!;
+    #tempoText: HTMLSpanElement = this.querySelector(".tempo-text")!;
+
+    #enabled = false;
+
+    #handleTempoKeyDown = (e: KeyboardEvent) => {
+      if (!e.shiftKey) return;
+
+      const oldValue = Number(this.#tempoBar.value);
+
+      let newValue;
+      if (e.key === "ArrowDown") {
+        e.preventDefault();
+        if (this.#enabled) {
+          newValue = Math.max(0.5, oldValue - 0.01);
+        }
+      }
+      if (e.key === "ArrowUp") {
+        e.preventDefault();
+        if (this.#enabled) {
+          newValue = Math.min(1.5, oldValue + 0.01);
+        }
+      }
+
+      if (newValue != null) {
+        const fixedNewValue = newValue.toFixed(2);
+        this.#musicPlayer.tempo = Number(fixedNewValue);
+        this.#tempoBar.value = fixedNewValue;
+        this.#tempoText.textContent = `x${fixedNewValue}`;
+      }
+    };
+
+    constructor() {
+      super();
+
+      this.#tempoButton.addEventListener("click", () => {
+        this.#musicPlayer.tempo = 1.0;
+        this.#tempoBar.value = "1";
+        this.#tempoText.textContent = "x1.00";
+      });
+
+      this.#tempoBar.addEventListener("input", (e) => {
+        const input = e.target as HTMLInputElement;
+        const value = Number(input.value);
+        this.#musicPlayer.tempo = value;
+        this.#tempoText.textContent = `x${value.toFixed(2)}`;
+      });
+    }
+
+    connectedCallback() {
+      document.addEventListener("keydown", this.#handleTempoKeyDown);
+    }
+
+    disconnectedCallback() {
+      document.removeEventListener("keydown", this.#handleTempoKeyDown);
+    }
+
+    load({ settings }: Music) {
+      this.#tempoButton.enable();
+      this.#tempoBar.enable();
+      const { tempo } = settings;
+      this.#tempoBar.value = tempo.toString();
+      this.#tempoText.textContent = `x${tempo.toFixed(2)}`;
+      this.#enabled = true;
+    }
+  }
+
+  customElements.define("tempo-control", TempoControlElement, { extends: "div" });
+</script>

@@ -1,0 +1,35 @@
+---
+import type { HTMLAttributes } from "astro/types";
+
+type Props = Omit<HTMLAttributes<"button">, "type">;
+
+const { props } = Astro;
+---
+
+<button type="button" {...props}>
+  <svg class="remove-icon">
+    <use href="/icons.svg#iconamoon--trash-duotone"></use>
+  </svg>
+</button>
+
+<style>
+  button {
+    background-color: transparent;
+    border: none;
+    position: relative;
+    z-index: 10;
+    color: currentColor;
+    vertical-align: text-top;
+    cursor: pointer;
+    filter: brightness(0.6);
+
+    &:hover {
+      filter: revert;
+    }
+
+    svg {
+      width: 1rem;
+      height: 1rem;
+    }
+  }
+</style>
