@@ -1,0 +1,34 @@
+---
+import type { HTMLAttributes } from "astro/types";
+
+type Props = Omit<HTMLAttributes<"input">, "is" | "type">;
+
+const { props } = Astro;
+---
+
+<input is="control-bar" type="range" {...props} />
+
+<script>
+  export class ControlBarElement extends HTMLInputElement {
+    enable() {
+      this.removeAttribute("disabled");
+    }
+
+    disable() {
+      this.setAttribute("disabled", "");
+    }
+  }
+
+  customElements.define("control-bar", ControlBarElement, { extends: "input" });
+</script>
+
+<style>
+  input {
+    flex-grow: 1;
+    cursor: pointer;
+
+    &:disabled {
+      cursor: not-allowed;
+    }
+  }
+</style>

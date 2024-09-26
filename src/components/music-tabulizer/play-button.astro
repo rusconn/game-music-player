@@ -1,0 +1,20 @@
+---
+import type { HTMLAttributes } from "astro/types";
+
+type Props = Omit<HTMLAttributes<"button">, "type">;
+
+const { props } = Astro;
+---
+
+<button type="button" {...props}></button>
+
+<style>
+  button {
+    width: 100%;
+    height: 100%;
+    background-color: transparent;
+    border: none;
+    cursor: pointer;
+    vertical-align: middle;
+  }
+</style>

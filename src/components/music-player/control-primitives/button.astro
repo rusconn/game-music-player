@@ -1,0 +1,42 @@
+---
+import type { HTMLAttributes } from "astro/types";
+
+type Props = Omit<HTMLAttributes<"button">, "is" | "type">;
+
+const { props } = Astro;
+---
+
+<button is="control-button" type="button" {...props}>
+  <slot />
+</button>
+
+<script>
+  export class ControlButtonElement extends HTMLButtonElement {
+    enable() {
+      this.removeAttribute("disabled");
+    }
+
+    disable() {
+      this.setAttribute("disabled", "");
+    }
+  }
+
+  customElements.define("control-button", ControlButtonElement, { extends: "button" });
+</script>
+
+<style>
+  button {
+    width: 1.375rem;
+    aspect-ratio: 1;
+    position: relative;
+    background-color: transparent;
+    border: none;
+    cursor: pointer;
+    color: currentColor;
+
+    &:disabled {
+      cursor: not-allowed;
+      color: #aaa;
+    }
+  }
+</style>
