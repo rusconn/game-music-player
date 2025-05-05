@@ -25,20 +25,21 @@ const { props } = Astro;
   import type { Music } from "../../models/music";
   import { formatSec } from "../../utils/format";
   import { queryMusicPlayer } from "../../utils/query";
+  import type { MusicPlayerElement } from "../music-player.astro.0.mts";
   import type { ControlBarElement } from "./control-primitives/bar.astro.0.mts";
   import type { ControlButtonElement } from "./control-primitives/button.astro.0.mts";
   import type { ControlIconElement } from "./control-primitives/icon.astro.0.mts";
 
   export class PlayControlElement extends HTMLDivElement {
-    #musicPlayer = queryMusicPlayer();
+    #musicPlayer!: MusicPlayerElement;
 
-    #playPause: ControlButtonElement = this.querySelector(".play-pause")!;
-    #playIcon: ControlIconElement = this.#playPause.querySelector(".play-icon")!;
-    #pauseIcon: ControlIconElement = this.#playPause.querySelector(".pause-icon")!;
-    #seekBar: ControlBarElement = this.querySelector(".seek-bar")!;
-    #currentTime: HTMLSpanElement = this.querySelector(".current-time")!;
-    #duration: HTMLSpanElement = this.querySelector(".duration")!;
-    #audioForMediaSession = this.querySelector("audio")!;
+    #playPause!: ControlButtonElement;
+    #playIcon!: ControlIconElement;
+    #pauseIcon!: ControlIconElement;
+    #seekBar!: ControlBarElement;
+    #currentTime!: HTMLSpanElement;
+    #duration!: HTMLSpanElement;
+    #audioForMediaSession!: HTMLAudioElement;
 
     #duraionValue: Music["metadata"]["format"]["duration"];
     #isUserSeeking = false;
@@ -78,8 +79,16 @@ const { props } = Astro;
       }
     };
 
-    constructor() {
-      super();
+    connectedCallback() {
+      this.#musicPlayer = queryMusicPlayer();
+
+      this.#playPause = this.querySelector(".play-pause")!;
+      this.#playIcon = this.#playPause.querySelector(".play-icon")!;
+      this.#pauseIcon = this.#playPause.querySelector(".pause-icon")!;
+      this.#seekBar = this.querySelector(".seek-bar")!;
+      this.#currentTime = this.querySelector(".current-time")!;
+      this.#duration = this.querySelector(".duration")!;
+      this.#audioForMediaSession = this.querySelector("audio")!;
 
       this.#playPause.addEventListener("click", async () => {
         await this.#musicPlayer.togglePlay();
@@ -118,9 +127,7 @@ const { props } = Astro;
       });
 
       this.#initMediaSession();
-    }
 
-    connectedCallback() {
       document.addEventListener("keydown", this.#handlePlayKeyDown);
       document.addEventListener("keydown", this.#handleSeekKeyDown);
     }

@@ -14,7 +14,11 @@ const { props } = Astro;
 
 <script>
   export class PlaiyingBarsElement extends HTMLDivElement {
-    #playingBars = this.querySelectorAll("span");
+    #playingBars!: NodeListOf<HTMLSpanElement>;
+
+    connectedCallback() {
+      this.#playingBars = this.querySelectorAll("span");
+    }
 
     stop() {
       for (const bar of this.#playingBars) {

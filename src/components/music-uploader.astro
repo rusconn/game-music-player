@@ -9,15 +9,19 @@
 
 <script>
   import { queryMusicTabulizer } from "../utils/query";
+  import type { MusicTabulizerElement } from "./music-tabulizer.astro.0.mts";
 
   class MusicUploaderElement extends HTMLDivElement {
-    #musicTabulizer = queryMusicTabulizer();
+    #musicTabulizer!: MusicTabulizerElement;
 
-    #musicInput = this.querySelector("input")!;
-    #musicUpload = this.querySelector("button")!;
+    #musicInput!: HTMLInputElement;
+    #musicUpload!: HTMLButtonElement;
 
-    constructor() {
-      super();
+    connectedCallback() {
+      this.#musicTabulizer = queryMusicTabulizer();
+
+      this.#musicInput = this.querySelector("input")!;
+      this.#musicUpload = this.querySelector("button")!;
 
       this.#musicInput.addEventListener("change", async (e) => {
         const input = e.target as HTMLInputElement;

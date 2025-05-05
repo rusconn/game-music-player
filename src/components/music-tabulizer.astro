@@ -32,16 +32,24 @@ import RemoveButton from "./music-tabulizer/remove-button.astro";
   import { Music } from "../models/music";
   import { formatSec } from "../utils/format";
   import { queryMusicPlayer } from "../utils/query";
+  import type { MusicPlayerElement } from "./music-player.astro.0.mts";
   import type { PlaiyingBarsElement } from "./music-tabulizer/playing-bars.astro.0.mts";
   import type { LoadingCircleElement } from "./music-tabulizer/loading-circle.astro.0.mts";
 
   export class MusicTabulizerElement extends HTMLTableElement {
-    #musicPlayer = queryMusicPlayer();
+    #musicPlayer!: MusicPlayerElement;
 
-    #tbody = this.querySelector("tbody")!;
-    #trTemplate = this.querySelector("template")!;
+    #tbody!: HTMLTableSectionElement;
+    #trTemplate!: HTMLTemplateElement;
 
     #playingMusic: Music | undefined;
+
+    connectedCallback() {
+      this.#musicPlayer = queryMusicPlayer();
+
+      this.#tbody = this.querySelector("tbody")!;
+      this.#trTemplate = this.querySelector("template")!;
+    }
 
     async add(files: FileList) {
       const willMaybeTrFragments = [...files].map(async (file) => {

@@ -15,8 +15,13 @@ const { props } = Astro;
   import type { Music } from "../../models/music";
 
   export class TitleDisplayElement extends HTMLDivElement {
-    #title: HTMLSpanElement = this.querySelector(".title")!;
-    #artistAndAlbum: HTMLSpanElement = this.querySelector(".artist-and-album")!;
+    #title!: HTMLSpanElement;
+    #artistAndAlbum!: HTMLSpanElement;
+
+    connectedCallback() {
+      this.#title = this.querySelector(".title")!;
+      this.#artistAndAlbum = this.querySelector(".artist-and-album")!;
+    }
 
     load({ file, metadata }: Music) {
       const { common } = metadata;

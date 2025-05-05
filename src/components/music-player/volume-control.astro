@@ -23,18 +23,19 @@ const { props } = Astro;
 <script>
   import type { Music } from "../../models/music";
   import { queryMusicPlayer } from "../../utils/query";
+  import type { MusicPlayerElement } from "../music-player.astro.0.mts";
   import type { ControlBarElement } from "./control-primitives/bar.astro.0.mts";
   import type { ControlButtonElement } from "./control-primitives/button.astro.0.mts";
   import type { ControlIconElement } from "./control-primitives/icon.astro.0.mts";
 
   export class VolumeControlElement extends HTMLDivElement {
-    #musicPlayer = queryMusicPlayer();
+    #musicPlayer!: MusicPlayerElement;
 
-    #muteButton: ControlButtonElement = this.querySelector(".mute-button")!;
-    #volumeIcon: ControlIconElement = this.#muteButton.querySelector(".volume-icon")!;
-    #mutedIcon: ControlIconElement = this.#muteButton.querySelector(".muted-icon")!;
-    #volumeBar: ControlBarElement = this.querySelector(".volume-bar")!;
-    #volumeText: HTMLSpanElement = this.querySelector(".volume-text")!;
+    #muteButton!: ControlButtonElement;
+    #volumeIcon!: ControlIconElement;
+    #mutedIcon!: ControlIconElement;
+    #volumeBar!: ControlBarElement;
+    #volumeText!: HTMLSpanElement;
 
     #enabled = false;
 
@@ -71,8 +72,14 @@ const { props } = Astro;
       }
     };
 
-    constructor() {
-      super();
+    connectedCallback() {
+      this.#musicPlayer = queryMusicPlayer();
+
+      this.#muteButton = this.querySelector(".mute-button")!;
+      this.#volumeIcon = this.#muteButton.querySelector(".volume-icon")!;
+      this.#mutedIcon = this.#muteButton.querySelector(".muted-icon")!;
+      this.#volumeBar = this.querySelector(".volume-bar")!;
+      this.#volumeText = this.querySelector(".volume-text")!;
 
       this.#muteButton.addEventListener("click", () => {
         this.#musicPlayer.toggleMute();
@@ -86,9 +93,7 @@ const { props } = Astro;
         this.#musicPlayer.volume = value;
         this.#volumeText.textContent = `x${value.toFixed(2)}`;
       });
-    }
 
-    connectedCallback() {
       document.addEventListener("keydown", this.#handleMuteKeyDown);
       document.addEventListener("keydown", this.#handleVolumeKeyDown);
     }

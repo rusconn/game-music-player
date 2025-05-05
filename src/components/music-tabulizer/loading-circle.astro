@@ -12,7 +12,11 @@ const { props } = Astro;
 
 <script>
   export class LoadingCircleElement extends HTMLDivElement {
-    #loader = this.querySelector("div")!;
+    #loader!: HTMLDivElement;
+
+    connectedCallback() {
+      this.#loader = this.querySelector("div")!;
+    }
 
     show() {
       this.#loader.classList.remove("hidden");

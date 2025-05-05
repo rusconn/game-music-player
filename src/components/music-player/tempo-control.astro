@@ -22,15 +22,16 @@ const { props } = Astro;
 <script>
   import type { Music } from "../../models/music";
   import { queryMusicPlayer } from "../../utils/query";
+  import type { MusicPlayerElement } from "../music-player.astro.0.mts";
   import type { ControlBarElement } from "./control-primitives/bar.astro.0.mts";
   import type { ControlButtonElement } from "./control-primitives/button.astro.0.mts";
 
   export class TempoControlElement extends HTMLDivElement {
-    #musicPlayer = queryMusicPlayer();
+    #musicPlayer!: MusicPlayerElement;
 
-    #tempoButton: ControlButtonElement = this.querySelector(".tempo-button")!;
-    #tempoBar: ControlBarElement = this.querySelector(".tempo-bar")!;
-    #tempoText: HTMLSpanElement = this.querySelector(".tempo-text")!;
+    #tempoButton!: ControlButtonElement;
+    #tempoBar!: ControlBarElement;
+    #tempoText!: HTMLSpanElement;
 
     #enabled = false;
 
@@ -61,8 +62,12 @@ const { props } = Astro;
       }
     };
 
-    constructor() {
-      super();
+    connectedCallback() {
+      this.#musicPlayer = queryMusicPlayer();
+
+      this.#tempoButton = this.querySelector(".tempo-button")!;
+      this.#tempoBar = this.querySelector(".tempo-bar")!;
+      this.#tempoText = this.querySelector(".tempo-text")!;
 
       this.#tempoButton.addEventListener("click", () => {
         this.#musicPlayer.tempo = 1.0;
@@ -76,9 +81,7 @@ const { props } = Astro;
         this.#musicPlayer.tempo = value;
         this.#tempoText.textContent = `x${value.toFixed(2)}`;
       });
-    }
 
-    connectedCallback() {
       document.addEventListener("keydown", this.#handleTempoKeyDown);
     }
 

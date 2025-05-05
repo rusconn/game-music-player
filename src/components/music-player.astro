@@ -20,18 +20,28 @@ import TempoControl from "./music-player/tempo-control.astro";
   import type { PlayControlElement } from "./music-player/play-control.astro.0.mts";
   import type { VolumeControlElement } from "./music-player/volume-control.astro.0.mts";
   import type { TempoControlElement } from "./music-player/tempo-control.astro.0.mts";
+  import type { MusicTabulizerElement } from "./music-tabulizer.astro.0.mts";
 
   export class MusicPlayerElement extends HTMLDivElement {
-    #musicTabulizer = queryMusicTabulizer();
+    #musicTabulizer!: MusicTabulizerElement;
 
-    #titleDisplay: TitleDisplayElement = this.querySelector(".title-display")!;
-    #playControl: PlayControlElement = this.querySelector(".play-control")!;
-    #volumeControl: VolumeControlElement = this.querySelector(".volume-control")!;
-    #tempoControl: TempoControlElement = this.querySelector(".tempo-control")!;
+    #titleDisplay!: TitleDisplayElement;
+    #playControl!: PlayControlElement;
+    #volumeControl!: VolumeControlElement;
+    #tempoControl!: TempoControlElement;
 
     #musicPlayer = new MusicPlayer();
     #loadedMusic: Music | undefined;
     #updateDisplayRequestId = 0;
+
+    connectedCallback() {
+      this.#musicTabulizer = queryMusicTabulizer();
+
+      this.#titleDisplay = this.querySelector(".title-display")!;
+      this.#playControl = this.querySelector(".play-control")!;
+      this.#volumeControl = this.querySelector(".volume-control")!;
+      this.#tempoControl = this.querySelector(".tempo-control")!;
+    }
 
     set volume(volume: number) {
       this.#musicPlayer.volume = volume;
