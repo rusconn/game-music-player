@@ -1,17 +1,16 @@
 ---
-import type { ComponentProps } from "astro/types";
+import type { HTMLAttributes } from "astro/types";
 
-import ControlContainer from "./control-primitives/container.astro";
 import ControlButton from "./control-primitives/button.astro";
 import ControlIcon from "./control-primitives/icon.astro";
 import ControlBar from "./control-primitives/bar.astro";
 
-type Props = Omit<ComponentProps<typeof ControlContainer>, "is">;
+type Props = HTMLAttributes<"div">;
 
 const { props } = Astro;
 ---
 
-<ControlContainer is="play-control" {...props}>
+<play-control {...props}>
   <audio src="5-seconds-of-silence.mp3" loop></audio>
   <ControlButton class="play-pause" disabled>
     <ControlIcon class="play-icon" iconId="ph--play-fill" />
@@ -19,7 +18,7 @@ const { props } = Astro;
   </ControlButton>
   <ControlBar class="seek-bar" min="0" max="100" value="0" step="any" disabled />
   <span class="current-time">0:00</span><span>/</span><span class="duration">0:00</span>
-</ControlContainer>
+</play-control>
 
 <script>
   import type { Music } from "../../models/music";
@@ -30,7 +29,7 @@ const { props } = Astro;
   import type { ControlButtonElement } from "./control-primitives/button.astro.0.mts";
   import type { ControlIconElement } from "./control-primitives/icon.astro.0.mts";
 
-  export class PlayControlElement extends HTMLDivElement {
+  export class PlayControlElement extends HTMLElement {
     #musicPlayer!: MusicPlayerElement;
 
     #playPause!: ControlButtonElement;
@@ -199,6 +198,15 @@ const { props } = Astro;
       }
     }
   }
-
-  customElements.define("play-control", PlayControlElement, { extends: "div" });
+  if (!customElements.get("play-control")) {
+    customElements.define("play-control", PlayControlElement);
+  }
 </script>
+
+<style>
+  play-control {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+</style>

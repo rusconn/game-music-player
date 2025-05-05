@@ -1,21 +1,21 @@
 ---
 import type { HTMLAttributes } from "astro/types";
 
-type Props = Omit<HTMLAttributes<"span">, "is"> & {
+type Props = HTMLAttributes<"div"> & {
   iconId: string;
 };
 
 const { iconId, ...props } = Astro.props;
 ---
 
-<span is="control-icon" {...props}>
+<control-icon {...props}>
   <svg>
     <use href=`/icons.svg#${iconId}`></use>
   </svg>
-</span>
+</control-icon>
 
 <script>
-  export class ControlIconElement extends HTMLSpanElement {
+  export class ControlIconElement extends HTMLElement {
     hide() {
       this.setAttribute("hidden", "");
     }
@@ -29,7 +29,9 @@ const { iconId, ...props } = Astro.props;
     }
   }
 
-  customElements.define("control-icon", ControlIconElement, { extends: "span" });
+  if (!customElements.get("control-icon")) {
+    customElements.define("control-icon", ControlIconElement);
+  }
 </script>
 
 <style>

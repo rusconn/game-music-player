@@ -1,20 +1,20 @@
 ---
 import type { HTMLAttributes } from "astro/types";
 
-type Props = Omit<HTMLAttributes<"div">, "is">;
+type Props = HTMLAttributes<"div">;
 
 const { props } = Astro;
 ---
 
-<div is="title-display" {...props}>
+<title-display {...props}>
   <span class="title">(No music selected)</span>
   <span class="artist-and-album">-</span>
-</div>
+</title-display>
 
 <script>
   import type { Music } from "../../models/music";
 
-  export class TitleDisplayElement extends HTMLDivElement {
+  export class TitleDisplayElement extends HTMLElement {
     #title!: HTMLSpanElement;
     #artistAndAlbum!: HTMLSpanElement;
 
@@ -42,11 +42,13 @@ const { props } = Astro;
     }
   }
 
-  customElements.define("title-display", TitleDisplayElement, { extends: "div" });
+  if (!customElements.get("title-display")) {
+    customElements.define("title-display", TitleDisplayElement);
+  }
 </script>
 
 <style>
-  div[is="title-display"] {
+  title-display {
     display: flex;
     flex-direction: column;
     white-space: nowrap;

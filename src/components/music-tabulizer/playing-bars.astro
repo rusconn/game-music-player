@@ -1,19 +1,19 @@
 ---
 import type { HTMLAttributes } from "astro/types";
 
-type Props = Omit<HTMLAttributes<"div">, "is">;
+type Props = HTMLAttributes<"div">;
 
 const { props } = Astro;
 ---
 
-<div is="playing-bars" {...props}>
+<playing-bars {...props}>
   <span class="playing-bar stopped playing-bar-1"></span>
   <span class="playing-bar stopped playing-bar-2"></span>
   <span class="playing-bar stopped playing-bar-3"></span>
-</div>
+</playing-bars>
 
 <script>
-  export class PlaiyingBarsElement extends HTMLDivElement {
+  export class PlaiyingBarsElement extends HTMLElement {
     #playingBars!: NodeListOf<HTMLSpanElement>;
 
     connectedCallback() {
@@ -62,11 +62,13 @@ const { props } = Astro;
     }
   }
 
-  customElements.define("playing-bars", PlaiyingBarsElement, { extends: "div" });
+  if (!customElements.get("playing-bars")) {
+    customElements.define("playing-bars", PlaiyingBarsElement);
+  }
 </script>
 
 <style>
-  div {
+  playing-bars {
     display: flex;
     align-items: flex-end;
     gap: 0.1rem;

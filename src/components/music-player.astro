@@ -5,12 +5,12 @@ import VolumeControl from "./music-player/volume-control.astro";
 import TempoControl from "./music-player/tempo-control.astro";
 ---
 
-<div is="music-player">
+<music-player>
   <TitleDisplay class="title-display" />
   <PlayControl class="play-control" />
   <VolumeControl class="volume-control" />
   <TempoControl class="tempo-control" />
-</div>
+</music-player>
 
 <script>
   import type { Music } from "../models/music";
@@ -22,7 +22,7 @@ import TempoControl from "./music-player/tempo-control.astro";
   import type { TempoControlElement } from "./music-player/tempo-control.astro.0.mts";
   import type { MusicTabulizerElement } from "./music-tabulizer.astro.0.mts";
 
-  export class MusicPlayerElement extends HTMLDivElement {
+  export class MusicPlayerElement extends HTMLElement {
     #musicTabulizer!: MusicTabulizerElement;
 
     #titleDisplay!: TitleDisplayElement;
@@ -91,11 +91,13 @@ import TempoControl from "./music-player/tempo-control.astro";
     }
   }
 
-  customElements.define("music-player", MusicPlayerElement, { extends: "div" });
+  if (!customElements.get("music-player")) {
+    customElements.define("music-player", MusicPlayerElement);
+  }
 </script>
 
 <style>
-  div[is="music-player"] {
+  music-player {
     display: flex;
     flex-direction: column;
     gap: 0.375rem;

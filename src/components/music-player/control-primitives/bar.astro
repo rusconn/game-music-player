@@ -1,34 +1,67 @@
 ---
 import type { HTMLAttributes } from "astro/types";
 
-type Props = Omit<HTMLAttributes<"input">, "is" | "type">;
+type Props = Omit<HTMLAttributes<"input">, "type">;
 
 const { props } = Astro;
+const { id, class: class_, ...rest } = props;
 ---
 
-<input is="control-bar" type="range" {...props} />
+<control-bar {...{ id, class: class_ }}>
+  <input type="range" {...rest} />
+</control-bar>
 
 <script>
-  export class ControlBarElement extends HTMLInputElement {
+  export class ControlBarElement extends HTMLElement {
+    #input!: HTMLInputElement;
+
+    connectedCallback() {
+      this.#input = this.querySelector("input")!;
+    }
+
+    get value() {
+      return this.#input.value;
+    }
+
+    get max() {
+      return this.#input.max;
+    }
+
+    set value(value: HTMLInputElement["value"]) {
+      this.#input.value = value;
+    }
+
+    set max(max: HTMLInputElement["max"]) {
+      this.#input.max = max;
+    }
+
     enable() {
-      this.removeAttribute("disabled");
+      this.#input.removeAttribute("disabled");
     }
 
     disable() {
-      this.setAttribute("disabled", "");
+      this.#input.setAttribute("disabled", "");
     }
   }
 
-  customElements.define("control-bar", ControlBarElement, { extends: "input" });
+  if (!customElements.get("control-bar")) {
+    customElements.define("control-bar", ControlBarElement);
+  }
 </script>
 
 <style>
-  input {
+  control-bar {
+    display: flex;
+    align-items: center;
     flex-grow: 1;
-    cursor: pointer;
 
-    &:disabled {
-      cursor: not-allowed;
+    & input {
+      inline-size: 100%;
+      cursor: pointer;
+
+      &:disabled {
+        cursor: not-allowed;
+      }
     }
   }
 </style>

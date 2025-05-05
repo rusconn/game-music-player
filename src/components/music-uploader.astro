@@ -1,17 +1,17 @@
-<div is="music-uploader">
+<music-uploader>
   <input type="file" accept="audio/*" multiple hidden />
   <button type="button">
     <svg>
       <use href="/icons.svg#fa6-solid--plus"></use>
     </svg>
   </button>
-</div>
+</music-uploader>
 
 <script>
   import { queryMusicTabulizer } from "../utils/query";
   import type { MusicTabulizerElement } from "./music-tabulizer.astro.0.mts";
 
-  class MusicUploaderElement extends HTMLDivElement {
+  class MusicUploaderElement extends HTMLElement {
     #musicTabulizer!: MusicTabulizerElement;
 
     #musicInput!: HTMLInputElement;
@@ -40,7 +40,9 @@
     }
   }
 
-  customElements.define("music-uploader", MusicUploaderElement, { extends: "div" });
+  if (!customElements.get("music-uploader")) {
+    customElements.define("music-uploader", MusicUploaderElement);
+  }
 </script>
 
 <style>

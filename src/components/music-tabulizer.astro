@@ -5,28 +5,30 @@ import LoadingCircle from "./music-tabulizer/loading-circle.astro";
 import RemoveButton from "./music-tabulizer/remove-button.astro";
 ---
 
-<table is="music-tabulizer">
-  <tbody>
-    <template>
-      <tr>
-        <td>
-          <div class="play-button-container">
-            <PlayButton class="play-button" />
-          </div>
-        </td>
-        <td class="indicator">
-          <PlayingBars class="playing-bars" />
-          <LoadingCircle class="loading-circle" />
-        </td>
-        <td class="title"></td>
-        <td class="duration"></td>
-        <td class="action">
-          <RemoveButton class="remove-button" />
-        </td>
-      </tr>
-    </template>
-  </tbody>
-</table>
+<music-tabulizer>
+  <table>
+    <tbody>
+      <template>
+        <tr>
+          <td>
+            <div class="play-button-container">
+              <PlayButton class="play-button" />
+            </div>
+          </td>
+          <td class="indicator">
+            <PlayingBars class="playing-bars" />
+            <LoadingCircle class="loading-circle" />
+          </td>
+          <td class="title"></td>
+          <td class="duration"></td>
+          <td class="action">
+            <RemoveButton class="remove-button" />
+          </td>
+        </tr>
+      </template>
+    </tbody>
+  </table>
+</music-tabulizer>
 
 <script>
   import { Music } from "../models/music";
@@ -36,7 +38,7 @@ import RemoveButton from "./music-tabulizer/remove-button.astro";
   import type { PlaiyingBarsElement } from "./music-tabulizer/playing-bars.astro.0.mts";
   import type { LoadingCircleElement } from "./music-tabulizer/loading-circle.astro.0.mts";
 
-  export class MusicTabulizerElement extends HTMLTableElement {
+  export class MusicTabulizerElement extends HTMLElement {
     #musicPlayer!: MusicPlayerElement;
 
     #tbody!: HTMLTableSectionElement;
@@ -124,7 +126,9 @@ import RemoveButton from "./music-tabulizer/remove-button.astro";
     }
   }
 
-  customElements.define("music-tabulizer", MusicTabulizerElement, { extends: "table" });
+  if (!customElements.get("music-tabulizer")) {
+    customElements.define("music-tabulizer", MusicTabulizerElement);
+  }
 </script>
 
 <style>

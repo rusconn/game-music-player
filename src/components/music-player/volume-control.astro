@@ -1,24 +1,23 @@
 ---
-import type { ComponentProps } from "astro/types";
+import type { HTMLAttributes } from "astro/types";
 
-import ControlContainer from "./control-primitives/container.astro";
 import ControlButton from "./control-primitives/button.astro";
 import ControlIcon from "./control-primitives/icon.astro";
 import ControlBar from "./control-primitives/bar.astro";
 
-type Props = Omit<ComponentProps<typeof ControlContainer>, "is">;
+type Props = HTMLAttributes<"div">;
 
 const { props } = Astro;
 ---
 
-<ControlContainer is="volume-control" {...props}>
+<volume-control {...props}>
   <ControlButton class="mute-button" disabled>
     <ControlIcon class="volume-icon" iconId="clarity--volume-up-solid" />
     <ControlIcon class="muted-icon" iconId="clarity--volume-mute-solid" hidden />
   </ControlButton>
   <ControlBar class="volume-bar" min="0" max="1" step="0.05" value="1" disabled />
   <span class="volume-text">x1.00</span>
-</ControlContainer>
+</volume-control>
 
 <script>
   import type { Music } from "../../models/music";
@@ -28,7 +27,7 @@ const { props } = Astro;
   import type { ControlButtonElement } from "./control-primitives/button.astro.0.mts";
   import type { ControlIconElement } from "./control-primitives/icon.astro.0.mts";
 
-  export class VolumeControlElement extends HTMLDivElement {
+  export class VolumeControlElement extends HTMLElement {
     #musicPlayer!: MusicPlayerElement;
 
     #muteButton!: ControlButtonElement;
@@ -113,5 +112,15 @@ const { props } = Astro;
     }
   }
 
-  customElements.define("volume-control", VolumeControlElement, { extends: "div" });
+  if (!customElements.get("volume-control")) {
+    customElements.define("volume-control", VolumeControlElement);
+  }
 </script>
+
+<style>
+  volume-control {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+</style>

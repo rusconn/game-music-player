@@ -1,17 +1,17 @@
 ---
 import type { HTMLAttributes } from "astro/types";
 
-type Props = Omit<HTMLAttributes<"div">, "is">;
+type Props = HTMLAttributes<"div">;
 
 const { props } = Astro;
 ---
 
-<div is="loading-circle" {...props}>
+<loading-circle {...props}>
   <div class="loader hidden"></div>
-</div>
+</loading-circle>
 
 <script>
-  export class LoadingCircleElement extends HTMLDivElement {
+  export class LoadingCircleElement extends HTMLElement {
     #loader!: HTMLDivElement;
 
     connectedCallback() {
@@ -27,10 +27,13 @@ const { props } = Astro;
     }
   }
 
-  customElements.define("loading-circle", LoadingCircleElement, { extends: "div" });
+  if (!customElements.get("loading-circle")) {
+    customElements.define("loading-circle", LoadingCircleElement);
+  }
 </script>
 
 <style>
+  loading-circle,
   div {
     display: flex;
     align-items: center;
