@@ -2,12 +2,7 @@ import { parseBlob } from "music-metadata";
 
 import { hash } from "../lib/hash";
 import { storage } from "./storage/mod";
-import {
-  type Settings,
-  type MusicInfo,
-  type PartialMusicInfo,
-  mergeDeep,
-} from "./storage/music/info";
+import { type Settings, type MusicInfo, mergeDeep } from "./storage/music/info";
 
 export type { Metadata } from "./storage/music/info";
 
@@ -65,11 +60,7 @@ export class Music {
 
   updateSettings(settings: Partial<Settings>) {
     this.#info = mergeDeep(this.#info, { settings });
-    this.#update({ settings });
-  }
-
-  #update(info: PartialMusicInfo) {
-    this.#storage.info.update(info);
+    this.#storage.info.update({ settings });
   }
 
   removeInfo() {

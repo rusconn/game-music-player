@@ -35,33 +35,6 @@ const { props } = Astro;
 
     #enabled = false;
 
-    #handleTempoKeyDown = (e: KeyboardEvent) => {
-      if (!e.shiftKey) return;
-
-      const oldValue = Number(this.#tempoBar.value);
-
-      let newValue;
-      if (e.key === "ArrowDown") {
-        e.preventDefault();
-        if (this.#enabled) {
-          newValue = Math.max(0.5, oldValue - 0.01);
-        }
-      }
-      if (e.key === "ArrowUp") {
-        e.preventDefault();
-        if (this.#enabled) {
-          newValue = Math.min(1.5, oldValue + 0.01);
-        }
-      }
-
-      if (newValue != null) {
-        const fixedNewValue = newValue.toFixed(2);
-        this.#musicPlayer.tempo = Number(fixedNewValue);
-        this.#tempoBar.value = fixedNewValue;
-        this.#tempoText.textContent = `x${fixedNewValue}`;
-      }
-    };
-
     connectedCallback() {
       this.#musicPlayer = queryMusicPlayer();
 
@@ -88,6 +61,33 @@ const { props } = Astro;
     disconnectedCallback() {
       document.removeEventListener("keydown", this.#handleTempoKeyDown);
     }
+
+    #handleTempoKeyDown = (e: KeyboardEvent) => {
+      if (!e.shiftKey) return;
+
+      const oldValue = Number(this.#tempoBar.value);
+
+      let newValue;
+      if (e.key === "ArrowDown") {
+        e.preventDefault();
+        if (this.#enabled) {
+          newValue = Math.max(0.5, oldValue - 0.01);
+        }
+      }
+      if (e.key === "ArrowUp") {
+        e.preventDefault();
+        if (this.#enabled) {
+          newValue = Math.min(1.5, oldValue + 0.01);
+        }
+      }
+
+      if (newValue != null) {
+        const fixedNewValue = newValue.toFixed(2);
+        this.#musicPlayer.tempo = Number(fixedNewValue);
+        this.#tempoBar.value = fixedNewValue;
+        this.#tempoText.textContent = `x${fixedNewValue}`;
+      }
+    };
 
     load({ settings }: Music) {
       this.#tempoButton.enable();

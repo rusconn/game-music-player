@@ -64,6 +64,19 @@ import TempoControl from "./music-player/tempo-control.astro";
       this.#startUpdateDisplay();
     }
 
+    #stopUpdateDisplay() {
+      cancelAnimationFrame(this.#updateDisplayRequestId);
+    }
+
+    #startUpdateDisplay() {
+      this.#updateDisplayRequestId = requestAnimationFrame(this.#updateDisplay.bind(this));
+    }
+
+    #updateDisplay() {
+      this.#playControl.update(this.#musicPlayer.currentTime ?? 0);
+      this.#updateDisplayRequestId = requestAnimationFrame(this.#updateDisplay.bind(this));
+    }
+
     async togglePlay() {
       await this.#musicPlayer.togglePlay();
       this.#musicTabulizer.togglePlay();
@@ -76,19 +89,6 @@ import TempoControl from "./music-player/tempo-control.astro";
     toggleMute() {
       this.#musicPlayer.toggleMute();
     }
-
-    #stopUpdateDisplay() {
-      cancelAnimationFrame(this.#updateDisplayRequestId);
-    }
-
-    #startUpdateDisplay() {
-      this.#updateDisplayRequestId = requestAnimationFrame(this.#updateDisplay.bind(this));
-    }
-
-    #updateDisplay = () => {
-      this.#playControl.update(this.#musicPlayer.currentTime ?? 0);
-      this.#updateDisplayRequestId = requestAnimationFrame(this.#updateDisplay.bind(this));
-    };
   }
 
   customElements.define("music-player", MusicPlayerElement, { extends: "div" });

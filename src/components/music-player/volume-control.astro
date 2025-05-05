@@ -39,6 +39,37 @@ const { props } = Astro;
 
     #enabled = false;
 
+    connectedCallback() {
+      this.#musicPlayer = queryMusicPlayer();
+
+      this.#muteButton = this.querySelector(".mute-button")!;
+      this.#volumeIcon = this.#muteButton.querySelector(".volume-icon")!;
+      this.#mutedIcon = this.#muteButton.querySelector(".muted-icon")!;
+      this.#volumeBar = this.querySelector(".volume-bar")!;
+      this.#volumeText = this.querySelector(".volume-text")!;
+
+      this.#muteButton.addEventListener("click", () => {
+        this.#musicPlayer.toggleMute();
+        this.#volumeIcon.toggle();
+        this.#mutedIcon.toggle();
+      });
+
+      this.#volumeBar.addEventListener("input", (e) => {
+        const input = e.target as HTMLInputElement;
+        const value = Number(input.value);
+        this.#musicPlayer.volume = value;
+        this.#volumeText.textContent = `x${value.toFixed(2)}`;
+      });
+
+      document.addEventListener("keydown", this.#handleMuteKeyDown);
+      document.addEventListener("keydown", this.#handleVolumeKeyDown);
+    }
+
+    disconnectedCallback() {
+      document.removeEventListener("keydown", this.#handleMuteKeyDown);
+      document.removeEventListener("keydown", this.#handleVolumeKeyDown);
+    }
+
     #handleMuteKeyDown = (e: KeyboardEvent) => {
       if (e.key === "m") {
         this.#muteButton.click();
@@ -71,37 +102,6 @@ const { props } = Astro;
         this.#volumeText.textContent = `x${fixedNewValue}`;
       }
     };
-
-    connectedCallback() {
-      this.#musicPlayer = queryMusicPlayer();
-
-      this.#muteButton = this.querySelector(".mute-button")!;
-      this.#volumeIcon = this.#muteButton.querySelector(".volume-icon")!;
-      this.#mutedIcon = this.#muteButton.querySelector(".muted-icon")!;
-      this.#volumeBar = this.querySelector(".volume-bar")!;
-      this.#volumeText = this.querySelector(".volume-text")!;
-
-      this.#muteButton.addEventListener("click", () => {
-        this.#musicPlayer.toggleMute();
-        this.#volumeIcon.toggle();
-        this.#mutedIcon.toggle();
-      });
-
-      this.#volumeBar.addEventListener("input", (e) => {
-        const input = e.target as HTMLInputElement;
-        const value = Number(input.value);
-        this.#musicPlayer.volume = value;
-        this.#volumeText.textContent = `x${value.toFixed(2)}`;
-      });
-
-      document.addEventListener("keydown", this.#handleMuteKeyDown);
-      document.addEventListener("keydown", this.#handleVolumeKeyDown);
-    }
-
-    disconnectedCallback() {
-      document.removeEventListener("keydown", this.#handleMuteKeyDown);
-      document.removeEventListener("keydown", this.#handleVolumeKeyDown);
-    }
 
     load({ settings }: Music) {
       const { volume } = settings;

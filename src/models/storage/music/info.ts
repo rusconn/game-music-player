@@ -15,7 +15,7 @@ export type MusicInfo = {
   settings: Settings;
 };
 
-export type PartialMusicInfo = Partial<{
+type PartialMusicInfo = Partial<{
   metadata: Partial<Metadata>;
   settings: Partial<Settings>;
 }>;

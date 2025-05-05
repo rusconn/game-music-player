@@ -49,15 +49,15 @@ const { props } = Astro;
       }
     }
 
-    hide() {
-      for (const bar of this.#playingBars) {
-        bar.classList.add("hidden");
-      }
-    }
-
     #show() {
       for (const bar of this.#playingBars) {
         bar.classList.remove("hidden");
+      }
+    }
+
+    hide() {
+      for (const bar of this.#playingBars) {
+        bar.classList.add("hidden");
       }
     }
   }

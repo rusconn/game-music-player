@@ -45,40 +45,6 @@ const { props } = Astro;
     #isUserSeeking = false;
     #enabled = false;
 
-    #handlePlayKeyDown = (e: KeyboardEvent) => {
-      // shouldn't we override the spacebar behavior??
-      if (e.key === "p" || e.key === " ") {
-        e.preventDefault();
-        this.#playPause.click();
-      }
-    };
-
-    #handleSeekKeyDown = async (e: KeyboardEvent) => {
-      const oldValue = Number(this.#seekBar.value);
-      const max = Number(this.#seekBar.max);
-
-      let newValue;
-      if (e.key === "ArrowLeft") {
-        e.preventDefault();
-        if (this.#enabled) {
-          newValue = Math.max(0, oldValue - 5);
-        }
-      }
-      if (e.key === "ArrowRight") {
-        e.preventDefault();
-        if (this.#enabled) {
-          newValue = Math.min(max, oldValue + 5);
-        }
-      }
-
-      if (newValue != null) {
-        const fixedNewValue = newValue.toFixed(2);
-        await this.#musicPlayer.seek(newValue);
-        this.#seekBar.value = fixedNewValue;
-        this.#currentTime.textContent = formatSec(newValue);
-      }
-    };
-
     connectedCallback() {
       this.#musicPlayer = queryMusicPlayer();
 
@@ -132,10 +98,64 @@ const { props } = Astro;
       document.addEventListener("keydown", this.#handleSeekKeyDown);
     }
 
+    #toggleMediaSession() {
+      this.#audioForMediaSession.paused //
+        ? this.#audioForMediaSession.play()
+        : this.#audioForMediaSession.pause();
+
+      navigator.mediaSession.playbackState =
+        navigator.mediaSession.playbackState === "paused" //
+          ? "playing"
+          : "paused";
+    }
+
+    #initMediaSession() {
+      navigator.mediaSession.setActionHandler("play", () => {
+        this.#playPause.click();
+      });
+      navigator.mediaSession.setActionHandler("pause", () => {
+        this.#playPause.click();
+      });
+    }
+
     disconnectedCallback() {
       document.removeEventListener("keydown", this.#handlePlayKeyDown);
       document.removeEventListener("keydown", this.#handleSeekKeyDown);
     }
+
+    #handlePlayKeyDown = (e: KeyboardEvent) => {
+      // shouldn't we override the spacebar behavior??
+      if (e.key === "p" || e.key === " ") {
+        e.preventDefault();
+        this.#playPause.click();
+      }
+    };
+
+    #handleSeekKeyDown = async (e: KeyboardEvent) => {
+      const oldValue = Number(this.#seekBar.value);
+      const max = Number(this.#seekBar.max);
+
+      let newValue;
+      if (e.key === "ArrowLeft") {
+        e.preventDefault();
+        if (this.#enabled) {
+          newValue = Math.max(0, oldValue - 5);
+        }
+      }
+      if (e.key === "ArrowRight") {
+        e.preventDefault();
+        if (this.#enabled) {
+          newValue = Math.min(max, oldValue + 5);
+        }
+      }
+
+      if (newValue != null) {
+        const fixedNewValue = newValue.toFixed(2);
+        await this.#musicPlayer.seek(newValue);
+        this.#seekBar.value = fixedNewValue;
+        this.#currentTime.textContent = formatSec(newValue);
+      }
+    };
 
     load(music: Music) {
       this.#playPause.enable();
@@ -156,22 +176,6 @@ const { props } = Astro;
       this.#enabled = true;
     }
 
-    update(second: number) {
-      this.#currentTime.textContent = formatSec(second);
-      if (this.#duraionValue && !this.#isUserSeeking) {
-        this.#seekBar.value = second.toString();
-      }
-    }
-
-    #initMediaSession() {
-      navigator.mediaSession.setActionHandler("play", () => {
-        this.#playPause.click();
-      });
-      navigator.mediaSession.setActionHandler("pause", () => {
-        this.#playPause.click();
-      });
-    }
-
     #loadMediaSession({ file, metadata }: Music) {
       this.#audioForMediaSession.play();
       navigator.mediaSession.playbackState = "playing";
@@ -188,15 +192,11 @@ const { props } = Astro;
       });
     }
 
-    #toggleMediaSession() {
-      this.#audioForMediaSession.paused //
-        ? this.#audioForMediaSession.play()
-        : this.#audioForMediaSession.pause();
-
-      navigator.mediaSession.playbackState =
-        navigator.mediaSession.playbackState === "paused" //
-          ? "playing"
-          : "paused";
+    update(second: number) {
+      this.#currentTime.textContent = formatSec(second);
+      if (this.#duraionValue && !this.#isUserSeeking) {
+        this.#seekBar.value = second.toString();
+      }
     }
   }
 

@@ -10,6 +10,45 @@ export class MusicPlayer {
   #intervalStartTime = 0;
   #musicDuration: number | undefined;
 
+  get currentTime() {
+    if (!this.#initialized()) return;
+    return this.#accElapsedTime + this.#intervalElapsedTime();
+  }
+
+  set volume(volume: number) {
+    this.#gainNode.gain.value = volume;
+  }
+
+  set tempo(tempo: number) {
+    this.#accElapsedTime += this.#intervalElapsedTime();
+    this.#intervalStartTime = this.#context.currentTime;
+    this.#source.playbackRate.value = tempo;
+  }
+
+  #intervalElapsedTime() {
+    return (this.#context.currentTime - this.#intervalStartTime) * this.#source.playbackRate.value;
+  }
+
+  async play(music: Music) {
+    if (!this.#initialized()) this.#init();
+
+    this.volume = 0;
+    await this.#context.resume();
+    await this.#renewSource({ music });
+    this.#accElapsedTime = 0;
+    this.#intervalStartTime = this.#context.currentTime;
+    this.#musicDuration = music.metadata.format.duration;
+
+    console.log({
+      loopStart: this.#source.loopStart,
+      loopEnd: this.#source.loopEnd,
+    });
+  }
+
+  #initialized() {
+    return this.#context != null;
+  }
+
   #init() {
     this.#context = new AudioContext();
     this.#source = this.#context.createBufferSource();
@@ -45,38 +84,6 @@ export class MusicPlayer {
     requestAnimationFrame(this.#updateTimes.bind(this));
   }
 
-  get currentTime() {
-    if (!this.#initialized()) return;
-
-    return this.#accElapsedTime + this.#intervalElapsedTime();
-  }
-
-  set volume(volume: number) {
-    this.#gainNode.gain.value = volume;
-  }
-
-  set tempo(tempo: number) {
-    this.#accElapsedTime += this.#intervalElapsedTime();
-    this.#intervalStartTime = this.#context.currentTime;
-    this.#source.playbackRate.value = tempo;
-  }
-
-  async play(music: Music) {
-    if (!this.#initialized()) this.#init();
-
-    this.volume = 0;
-    await this.#context.resume();
-    await this.#renewSource({ music });
-    this.#accElapsedTime = 0;
-    this.#intervalStartTime = this.#context.currentTime;
-    this.#musicDuration = music.metadata.format.duration;
-
-    console.log({
-      loopStart: this.#source.loopStart,
-      loopEnd: this.#source.loopEnd,
-    });
-  }
-
   async togglePlay() {
     return this.#context.state === "suspended" //
       ? await this.#context.resume()
@@ -87,10 +94,6 @@ export class MusicPlayer {
     await this.#renewSource({ offset: toSec });
     this.#accElapsedTime = toSec;
     this.#intervalStartTime = this.#context.currentTime;
-  }
-
-  toggleMute() {
-    this.#muteNode.gain.value ^= 1;
   }
 
   async #renewSource(options?: { offset?: number; music?: Music }) {
@@ -155,11 +158,7 @@ export class MusicPlayer {
     return tag && Number(tag.value);
   }
 
-  #intervalElapsedTime() {
-    return (this.#context.currentTime - this.#intervalStartTime) * this.#source.playbackRate.value;
-  }
-
-  #initialized() {
-    return this.#context != null;
+  toggleMute() {
+    this.#muteNode.gain.value ^= 1;
   }
 }
