@@ -121,7 +121,7 @@ import RemoveButton from "./music-tabulizer/remove-button.astro";
 
 <style>
   table {
-    width: 100%;
+    inline-size: 100%;
     text-align: end;
     border-collapse: collapse;
     table-layout: fixed;
@@ -129,7 +129,7 @@ import RemoveButton from "./music-tabulizer/remove-button.astro";
     tbody {
       tr {
         position: relative;
-        height: 1.75rem;
+        block-size: 1.75rem;
         scale: 1; /* Without this, the spacing between rows would be slightly odd. why? */
 
         &:hover {
@@ -139,14 +139,14 @@ import RemoveButton from "./music-tabulizer/remove-button.astro";
 
         td {
           white-space: nowrap;
-          overflow-x: hidden;
+          overflow-inline: hidden;
           text-overflow: ellipsis;
           padding-block: 0.2rem;
           padding-inline-start: 0.25rem;
-          height: 100%;
+          block-size: 100%;
 
           &:first-of-type {
-            width: 0%;
+            inline-size: 0%;
 
             .play-button-container {
               position: absolute;
@@ -157,21 +157,21 @@ import RemoveButton from "./music-tabulizer/remove-button.astro";
 
           &.indicator {
             position: relative;
-            min-width: 10%;
+            min-inline-size: 10%;
             padding: 0.25rem;
           }
 
           &.title {
-            width: 60%;
+            inline-size: 60%;
             text-align: start;
           }
 
           &.duration {
-            width: 15%;
+            inline-size: 15%;
           }
 
           &.action {
-            width: 15%;
+            inline-size: 15%;
             padding-inline-end: 0.125rem;
           }
         }

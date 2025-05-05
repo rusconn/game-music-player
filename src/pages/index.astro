@@ -25,29 +25,29 @@ import MusicTabulizer from "../components/music-tabulizer.astro";
   main {
     display: grid;
     grid-template-rows: auto 1fr;
-    height: 100svh;
+    block-size: 100svh;
   }
 
   .music-player {
-    max-width: 100svw;
+    max-inline-size: 100svw;
     background-color: #222222;
     color: #e2e2e2;
-    overflow-y: auto;
+    overflow-block: auto;
     scrollbar-color: #222222 transparent;
     scrollbar-gutter: stable both-edges;
   }
 
   .music-manager {
-    max-width: 100svw;
-    overflow-x: hidden;
-    overflow-y: auto;
+    max-inline-size: 100svw;
+    overflow-inline: hidden;
+    overflow-block: auto;
     scrollbar-color: #121212 transparent;
     scrollbar-gutter: stable both-edges;
   }
 
   .container {
     margin-inline: auto;
-    width: clamp(20rem, 100%, 30rem);
+    inline-size: clamp(20rem, 100%, 30rem);
     padding: 1.25rem;
   }
 </style>
