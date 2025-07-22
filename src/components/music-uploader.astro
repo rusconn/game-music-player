@@ -46,26 +46,29 @@
 </script>
 
 <style>
-  button {
-    display: inline-flex;
-    margin-inline-start: -0.3rem;
-    padding: 0.35rem;
-    inline-size: 2rem;
-    aspect-ratio: 1;
-    border-radius: 100vmax;
-    border: none;
-    background-color: inherit;
-    color: inherit;
-    cursor: pointer;
+  music-uploader {
+    display: flex;
+    justify-content: center;
 
-    &:hover {
-      background-color: #383838;
-    }
+    button {
+      display: inline-flex;
+      padding: 0.35rem;
+      block-size: 1.75rem;
+      border-radius: 100vmax;
+      border: none;
+      color: inherit;
+      cursor: pointer;
+      background-color: #3a3a3a;
 
-    svg {
-      fill: currentColor;
-      inline-size: 100%;
-      block-size: 100%;
+      &:hover {
+        filter: brightness(1.2);
+      }
+
+      svg {
+        fill: currentColor;
+        inline-size: 100%;
+        block-size: 100%;
+      }
     }
   }
 </style>
