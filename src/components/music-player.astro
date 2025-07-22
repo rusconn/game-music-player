@@ -8,8 +8,10 @@ import TempoControl from "./music-player/tempo-control.astro";
 <music-player>
   <TitleDisplay class="title-display" />
   <PlayControl class="play-control" />
-  <VolumeControl class="volume-control" />
-  <TempoControl class="tempo-control" />
+  <div class="volume-and-tempo">
+    <VolumeControl class="volume-control" />
+    <TempoControl class="tempo-control" />
+  </div>
 </music-player>
 
 <script>
@@ -101,6 +103,11 @@ import TempoControl from "./music-player/tempo-control.astro";
     display: flex;
     flex-direction: column;
     gap: 0.375rem;
-    font-size: 1.125rem;
+  }
+
+  .volume-and-tempo {
+    display: flex;
+    justify-content: space-between;
+    gap: 1.125rem;
   }
 </style>

@@ -15,7 +15,7 @@ const { props } = Astro;
     <ControlIcon class="tempo-icon" iconId="mdi--metronome" />
   </ControlButton>
   <ControlBar class="tempo-bar" min="0.5" max="1.5" value="1" step="0.01" disabled />
-  <span class="tempo-text">x1.00</span>
+  <span class="tempo-text">1.00</span>
 </tempo-control>
 
 <script>
@@ -44,14 +44,14 @@ const { props } = Astro;
       this.#tempoButton.addEventListener("click", () => {
         this.#musicPlayer.tempo = 1.0;
         this.#tempoBar.value = "1";
-        this.#tempoText.textContent = "x1.00";
+        this.#tempoText.textContent = "1.00";
       });
 
       this.#tempoBar.addEventListener("input", (e) => {
         const input = e.target as HTMLInputElement;
         const value = Number(input.value);
         this.#musicPlayer.tempo = value;
-        this.#tempoText.textContent = `x${value.toFixed(2)}`;
+        this.#tempoText.textContent = value.toFixed(2);
       });
 
       document.addEventListener("keydown", this.#handleTempoKeyDown);
@@ -84,7 +84,7 @@ const { props } = Astro;
         const fixedNewValue = newValue.toFixed(2);
         this.#musicPlayer.tempo = Number(fixedNewValue);
         this.#tempoBar.value = fixedNewValue;
-        this.#tempoText.textContent = `x${fixedNewValue}`;
+        this.#tempoText.textContent = fixedNewValue;
       }
     };
 
@@ -93,7 +93,7 @@ const { props } = Astro;
       this.#tempoBar.enable();
       const { tempo } = settings;
       this.#tempoBar.value = tempo.toString();
-      this.#tempoText.textContent = `x${tempo.toFixed(2)}`;
+      this.#tempoText.textContent = tempo.toFixed(2);
       this.#enabled = true;
     }
   }
@@ -107,6 +107,6 @@ const { props } = Astro;
   tempo-control {
     display: flex;
     align-items: center;
-    gap: 0.5rem;
+    gap: 0.375rem;
   }
 </style>

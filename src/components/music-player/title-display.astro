@@ -7,8 +7,7 @@ const { props } = Astro;
 ---
 
 <title-display {...props}>
-  <span class="title">(No music selected)</span>
-  <span class="artist-and-album">-</span>
+  <span class="title">No music selected</span>
 </title-display>
 
 <script>
@@ -16,29 +15,16 @@ const { props } = Astro;
 
   export class TitleDisplayElement extends HTMLElement {
     #title!: HTMLSpanElement;
-    #artistAndAlbum!: HTMLSpanElement;
 
     connectedCallback() {
       this.#title = this.querySelector(".title")!;
-      this.#artistAndAlbum = this.querySelector(".artist-and-album")!;
     }
 
     load({ file, metadata }: Music) {
       const { common } = metadata;
-      const { title, artist, album } = common;
+      const { title } = common;
 
       this.#title.textContent = title?.trim() || file.name;
-
-      const filtered = [artist?.trim(), album?.trim()]
-        .filter((x) => x != null)
-        .filter((x) => x !== "");
-
-      this.#artistAndAlbum.textContent =
-        filtered.length === 2 //
-          ? filtered.join(" - ")
-          : filtered.length === 1
-            ? filtered[0]
-            : "-";
     }
   }
 
@@ -58,10 +44,6 @@ const { props } = Astro;
       overflow-inline: hidden;
       text-overflow: ellipsis;
       user-select: all;
-
-      &.artist-and-album {
-        color: #a8a8a8;
-      }
     }
   }
 </style>
