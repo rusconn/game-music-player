@@ -23,6 +23,12 @@
     },
     { once: true }
   );
+
+  const isMobile = /iPhone|Android|Mobile|iPad|iPod/i.test(navigator.userAgent);
+
+  if (isMobile) {
+    document.body.classList.add("mobile");
+  }
 </script>
 
 <style is:global>
@@ -45,5 +51,9 @@
     background-color: #222;
     color: #f0f0f0;
     user-select: none;
+
+    &.mobile {
+      background-color: #111;
+    }
   }
 </style>
