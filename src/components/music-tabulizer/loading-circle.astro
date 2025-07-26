@@ -36,8 +36,11 @@ const { props } = Astro;
   loading-circle,
   div {
     display: flex;
+    justify-content: center;
     align-items: center;
     position: absolute;
+    block-size: 100%;
+    aspect-ratio: 1;
 
     .loader {
       block-size: 1rem;

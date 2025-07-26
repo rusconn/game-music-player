@@ -29,11 +29,4 @@
   <symbol id="fa6-solid--plus" viewBox="0 0 448 512">
     <path d="M256 80c0-17.7-14.3-32-32-32s-32 14.3-32 32v144H48c-17.7 0-32 14.3-32 32s14.3 32 32 32h144v144c0 17.7 14.3 32 32 32s32-14.3 32-32V288h144c17.7 0 32-14.3 32-32s-14.3-32-32-32H256z" />
   </symbol>
-
-  <symbol id="iconamoon--trash-duotone" viewBox="0 0 24 24">
-    <g fill="none">
-      <path d="M8 21h8a2 2 0 0 0 2-2V7H6v12a2 2 0 0 0 2 2" opacity="0" />
-	    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.7" d="M14 11v6m-4-6v6M6 7v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V7M4 7h16M7 7l2-4h6l2 4" />
-    </g>
-  </symbol>
 </svg>

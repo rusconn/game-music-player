@@ -39,9 +39,6 @@ export const info = {
       }
     }, 200);
   },
-  delete(id: MusicId) {
-    localStorage.removeItem(id);
-  },
 };
 
 export const mergeDeep = (dest: Readonly<MusicInfo>, src: Readonly<PartialMusicInfo>) => ({

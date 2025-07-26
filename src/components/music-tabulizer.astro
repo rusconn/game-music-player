@@ -1,33 +1,23 @@
 ---
-import PlayButton from "./music-tabulizer/play-button.astro";
 import PlayingBars from "./music-tabulizer/playing-bars.astro";
 import LoadingCircle from "./music-tabulizer/loading-circle.astro";
-import RemoveButton from "./music-tabulizer/remove-button.astro";
 ---
 
 <music-tabulizer>
-  <table>
-    <tbody>
-      <template>
-        <tr>
-          <td>
-            <div class="play-button-container">
-              <PlayButton class="play-button" />
-            </div>
-          </td>
-          <td class="indicator">
-            <PlayingBars class="playing-bars" />
-            <LoadingCircle class="loading-circle" />
-          </td>
-          <td class="title"></td>
-          <td class="duration"></td>
-          <td class="action">
-            <RemoveButton class="remove-button" />
-          </td>
-        </tr>
-      </template>
-    </tbody>
-  </table>
+  <ul>
+    <template>
+      <li>
+        <div class="indicator">
+          <PlayingBars class="playing-bars" />
+          <LoadingCircle class="loading-circle" />
+        </div>
+        <button type="button" class="play-button">
+          <span class="title"></span>
+          <span class="duration"></span>
+        </button>
+      </li>
+    </template>
+  </ul>
 </music-tabulizer>
 
 <script>
@@ -41,35 +31,37 @@ import RemoveButton from "./music-tabulizer/remove-button.astro";
   export class MusicTabulizerElement extends HTMLElement {
     #musicPlayer!: MusicPlayerElement;
 
-    #tbody!: HTMLTableSectionElement;
-    #trTemplate!: HTMLTemplateElement;
+    #ul!: HTMLUListElement;
+    #liTemplate!: HTMLTemplateElement;
 
     #playingMusic: Music | undefined;
 
     connectedCallback() {
       this.#musicPlayer = queryMusicPlayer();
 
-      this.#tbody = this.querySelector("tbody")!;
-      this.#trTemplate = this.querySelector("template")!;
+      this.#ul = this.querySelector("ul")!;
+      this.#liTemplate = this.querySelector("template")!;
     }
 
     async add(files: FileList) {
-      const willMaybeTrFragments = [...files].map(async (file) => {
+      const willMaybeLiFragments = [...files].map(async (file) => {
         const music = await Music.tryFrom(file);
 
         // TODO: make some announcement
         if (!music) return;
 
-        const trFragment = this.#trTemplate.content.cloneNode(true) as DocumentFragment;
-        const [first, indicator, title, duration, action] = trFragment.querySelectorAll("td")!;
+        const liFragment = this.#liTemplate.content.cloneNode(true) as DocumentFragment;
+        const li = liFragment.firstElementChild!;
+        const [indicator, button] = li.children;
+        const [title, duration] = button.children;
 
-        first.querySelector(".play-button")!.addEventListener("click", async () => {
-          this.#tbody.setAttribute("inert", "");
+        button.addEventListener("click", async () => {
+          this.#ul.setAttribute("inert", "");
 
           if (this.#playingMusic) {
-            this.#queryTableRow(this.#playingMusic)
+            this.#queryRow(this.#playingMusic)
               ?.querySelector<PlaiyingBarsElement>(".playing-bars")
-              ?.stop();
+              ?.hide();
           }
 
           const playingBars = indicator.querySelector<PlaiyingBarsElement>(".playing-bars")!;
@@ -85,7 +77,7 @@ import RemoveButton from "./music-tabulizer/remove-button.astro";
             // TODO: avoid blocking
             alert("Sorry, failed to load the music file.\nTry another browser.");
           } finally {
-            this.#tbody.removeAttribute("inert");
+            this.#ul.removeAttribute("inert");
           }
         });
 
@@ -97,32 +89,27 @@ import RemoveButton from "./music-tabulizer/remove-button.astro";
           duration.textContent = formatSec(format.duration);
         }
 
-        action.querySelector("button")!.addEventListener("click", () => {
-          this.#queryTableRow(music)?.remove();
-          music.removeInfo();
-        });
+        liFragment.firstElementChild!.setAttribute("data-id", music.id);
 
-        trFragment.firstElementChild!.setAttribute("data-id", music.id);
-
-        return trFragment;
+        return liFragment;
       });
 
-      const maybeTrFragments = await Promise.all(willMaybeTrFragments);
-      const trFragments = maybeTrFragments.filter((mtrf) => !!mtrf);
+      const maybeLiFragments = await Promise.all(willMaybeLiFragments);
+      const liFragments = maybeLiFragments.filter((mtrf) => !!mtrf);
 
-      this.#tbody.prepend(...trFragments);
+      this.#ul.prepend(...liFragments);
     }
 
     togglePlay() {
       if (this.#playingMusic) {
-        this.#queryTableRow(this.#playingMusic)
+        this.#queryRow(this.#playingMusic)
           ?.querySelector<PlaiyingBarsElement>(".playing-bars")
           ?.pause();
       }
     }
 
-    #queryTableRow(music: Music) {
-      return this.querySelector(`tr[data-id=${music.id}]`);
+    #queryRow(music: Music) {
+      return this.querySelector(`li[data-id=${music.id}]`);
     }
   }
 
@@ -132,59 +119,52 @@ import RemoveButton from "./music-tabulizer/remove-button.astro";
 </script>
 
 <style>
-  table {
-    inline-size: 100%;
-    text-align: end;
-    border-collapse: collapse;
-    table-layout: fixed;
+  music-tabulizer {
+    padding-inline: 1.375rem;
 
-    tbody {
-      tr {
+    ul {
+      list-style-type: none;
+
+      li {
         position: relative;
+        display: flex;
         block-size: 1.75rem;
-        scale: 1; /* Without this, the spacing between rows would be slightly odd. why? */
 
-        &:hover {
-          background-color: #292929;
-          filter: brightness(1.2);
+        .indicator {
+          position: absolute;
+          left: -1.375rem;
+          block-size: 1.5rem;
+          aspect-ratio: 1;
         }
 
-        td {
-          white-space: nowrap;
-          overflow-inline: hidden;
-          text-overflow: ellipsis;
-          padding-block: 0.2rem;
-          padding-inline-start: 0.25rem;
-          block-size: 100%;
+        .play-button {
+          inline-size: 100%;
+          display: flex;
+          align-items: center;
+          cursor: pointer;
+          padding-inline: 0.375rem;
+          border-radius: 0.375rem;
+          border: none;
 
-          &:first-of-type {
-            inline-size: 0%;
-
-            .play-button-container {
-              position: absolute;
-              inset: 0;
-              z-index: 10;
-            }
+          &:hover {
+            background-color: #292929;
+            filter: brightness(1.25);
           }
 
-          &.indicator {
-            position: relative;
-            min-inline-size: 10%;
-            padding: 0.25rem;
-          }
-
-          &.title {
-            inline-size: 60%;
+          .title {
+            inline-size: 85%;
             text-align: start;
+            white-space: nowrap;
+            overflow-inline: hidden;
+            text-overflow: ellipsis;
           }
 
-          &.duration {
+          .duration {
             inline-size: 15%;
-          }
-
-          &.action {
-            inline-size: 15%;
-            padding-inline-end: 0.125rem;
+            visibility: visible;
+            opacity: 1;
+            color: #9c9c9c;
+            text-align: end;
           }
         }
       }
