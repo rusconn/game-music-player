@@ -62,10 +62,6 @@ export class Music {
     this.#info = mergeDeep(this.#info, { settings });
     this.#storage.info.update({ settings });
   }
-
-  removeInfo() {
-    this.#storage.info.delete();
-  }
 }
 
 export type MusicId = Awaited<ReturnType<typeof musicId>>;
@@ -84,6 +80,5 @@ const createStorage = (id: MusicId) => ({
     get: () => storage.music.info.get(id),
     set: storage.music.info.set(id),
     update: storage.music.info.update(id),
-    delete: () => storage.music.info.delete(id),
   },
 });

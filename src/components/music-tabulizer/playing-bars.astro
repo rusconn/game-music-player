@@ -7,9 +7,9 @@ const { props } = Astro;
 ---
 
 <playing-bars {...props}>
-  <span class="playing-bar stopped playing-bar-1"></span>
-  <span class="playing-bar stopped playing-bar-2"></span>
-  <span class="playing-bar stopped playing-bar-3"></span>
+  <span class="playing-bar hidden playing-bar-1"></span>
+  <span class="playing-bar hidden playing-bar-2"></span>
+  <span class="playing-bar hidden playing-bar-3"></span>
 </playing-bars>
 
 <script>
@@ -20,24 +20,9 @@ const { props } = Astro;
       this.#playingBars = this.querySelectorAll("span");
     }
 
-    stop() {
-      for (const bar of this.#playingBars) {
-        bar.classList.remove("playing-bar", "paused");
-
-        // initialize animation state
-        requestAnimationFrame(() => {
-          requestAnimationFrame(() => {
-            bar.classList.add("playing-bar", "stopped");
-          });
-        });
-
-        this.#show();
-      }
-    }
-
     play() {
       for (const bar of this.#playingBars) {
-        bar.classList.remove("stopped", "paused");
+        bar.classList.remove("paused");
         this.#show();
       }
     }
@@ -45,7 +30,6 @@ const { props } = Astro;
     pause() {
       for (const bar of this.#playingBars) {
         bar.classList.toggle("paused");
-        this.#show();
       }
     }
 
@@ -84,11 +68,6 @@ const { props } = Astro;
       inline-size: 0.25rem;
       block-size: 100%;
       animation: up-and-down 1.3s ease infinite alternate;
-
-      &.stopped {
-        filter: brightness(0.6);
-        animation-play-state: paused;
-      }
 
       &.paused {
         animation-play-state: paused;
