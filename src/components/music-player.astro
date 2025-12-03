@@ -24,7 +24,7 @@ import TempoControl from "./music-player/tempo-control.astro";
   import type { TempoControlElement } from "./music-player/tempo-control.astro.0.mts";
   import type { MusicTabulizerElement } from "./music-tabulizer.astro.0.mts";
 
-  type State = "unloaded" | "playing" | "paused";
+  type State = "unloaded" | "loading" | "playing" | "paused";
 
   export class MusicPlayerElement extends HTMLElement {
     #musicTabulizer!: MusicTabulizerElement;
@@ -60,12 +60,15 @@ import TempoControl from "./music-player/tempo-control.astro";
 
     async play(music: Music) {
       this.#stopUpdateDisplay();
-      await this.#musicPlayer.play(music);
+
+      this.#state = "loading";
       this.#titleDisplay.load(music);
       this.#playControl.load(music);
       this.#volumeControl.load(music);
       this.#tempoControl.load(music);
       this.#loadedMusic = music;
+
+      await this.#musicPlayer.play(music);
       this.#startUpdateDisplay();
       this.#state = "playing";
     }
