@@ -126,7 +126,9 @@ const { props } = Astro;
       // shouldn't we override the spacebar behavior??
       if (e.key === "p" || e.key === " ") {
         e.preventDefault();
-        this.#playPause.click();
+        if (this.#enabled) {
+          this.#playPause.click();
+        }
       }
     };
 
