@@ -71,6 +71,9 @@ import TempoControl from "./music-player/tempo-control.astro";
       await this.#musicPlayer.play(music);
       this.#startUpdateDisplay();
       this.#state = "playing";
+      this.#playControl.enable();
+      this.#volumeControl.enable();
+      this.#tempoControl.enable();
     }
 
     #stopUpdateDisplay() {

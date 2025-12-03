@@ -157,10 +157,8 @@ const { props } = Astro;
     };
 
     load(music: Music) {
-      this.#playPause.enable();
-      this.#playIcon.hide();
-      this.#pauseIcon.show();
-      this.#seekBar.enable();
+      this.disable();
+
       this.#seekBar.value = "0";
       this.#currentTime.textContent = "0:00";
 
@@ -171,12 +169,33 @@ const { props } = Astro;
       }
 
       this.#loadMediaSession(music);
+    }
+
+    disable() {
+      this.#enabled = false;
+      this.#playPause.disable();
+      this.#seekBar.disable();
+      this.#playIcon.show();
+      this.#pauseIcon.hide();
+    }
+
+    enable() {
+      this.#playPause.enable();
+      this.#seekBar.enable();
+      this.#playIcon.hide();
+      this.#pauseIcon.show();
       this.#enabled = true;
+      this.#enableMediaSession();
+    }
+
+    #enableMediaSession() {
+      this.#audioForMediaSession.play();
+      navigator.mediaSession.playbackState = "playing";
     }
 
     #loadMediaSession({ file, metadata }: Music) {
-      this.#audioForMediaSession.play();
-      navigator.mediaSession.playbackState = "playing";
+      this.#audioForMediaSession.pause();
+      navigator.mediaSession.playbackState = "paused";
 
       navigator.mediaSession.metadata = new MediaMetadata({
         title: metadata.common.title ?? file.name,

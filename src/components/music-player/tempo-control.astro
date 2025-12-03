@@ -89,11 +89,22 @@ const { props } = Astro;
     };
 
     load({ settings }: Music) {
-      this.#tempoButton.enable();
-      this.#tempoBar.enable();
+      this.disable();
+
       const { tempo } = settings;
       this.#tempoBar.value = tempo.toString();
       this.#tempoText.textContent = tempo.toFixed(2);
+    }
+
+    disable() {
+      this.#enabled = false;
+      this.#tempoButton.disable();
+      this.#tempoBar.disable();
+    }
+
+    enable() {
+      this.#tempoButton.enable();
+      this.#tempoBar.enable();
       this.#enabled = true;
     }
   }

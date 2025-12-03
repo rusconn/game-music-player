@@ -102,11 +102,22 @@ const { props } = Astro;
     };
 
     load({ settings }: Music) {
+      this.disable();
+
       const { volume } = settings;
-      this.#muteButton.enable();
       this.#volumeBar.value = (volume * 100).toString();
-      this.#volumeBar.enable();
       this.#volumeText.textContent = (volume * 100).toString();
+    }
+
+    disable() {
+      this.#enabled = false;
+      this.#muteButton.disable();
+      this.#volumeBar.disable();
+    }
+
+    enable() {
+      this.#muteButton.enable();
+      this.#volumeBar.enable();
       this.#enabled = true;
     }
   }
