@@ -11,7 +11,6 @@ const { props } = Astro;
 ---
 
 <play-control {...props}>
-  <audio src="5-seconds-of-silence.mp3" loop></audio>
   <ControlButton class="play-pause" disabled>
     <ControlIcon class="play-icon" iconId="ph--play-fill" />
     <ControlIcon class="pause-icon" iconId="ph--pause-fill" hidden />
@@ -37,7 +36,6 @@ const { props } = Astro;
     #pauseIcon!: ControlIconElement;
     #seekBar!: ControlBarElement;
     #currentTime!: HTMLSpanElement;
-    #audioForMediaSession!: HTMLAudioElement;
 
     #duraionValue: Music["metadata"]["format"]["duration"];
     #isUserSeeking = false;
@@ -51,13 +49,9 @@ const { props } = Astro;
       this.#pauseIcon = this.#playPause.querySelector(".pause-icon")!;
       this.#seekBar = this.querySelector(".seek-bar")!;
       this.#currentTime = this.querySelector(".current-time")!;
-      this.#audioForMediaSession = this.querySelector("audio")!;
 
-      this.#playPause.addEventListener("click", async () => {
-        await this.#musicPlayer.togglePlay();
-        this.#playIcon.toggle();
-        this.#pauseIcon.toggle();
-        this.#toggleMediaSession();
+      this.#playPause.addEventListener("click", () => {
+        this.#musicPlayer.togglePlay();
       });
 
       this.#seekBar.addEventListener("input", (e) => {
@@ -91,30 +85,8 @@ const { props } = Astro;
         this.#isUserSeeking = false;
       });
 
-      this.#initMediaSession();
-
       document.addEventListener("keydown", this.#handlePlayKeyDown);
       document.addEventListener("keydown", this.#handleSeekKeyDown);
-    }
-
-    #toggleMediaSession() {
-      this.#audioForMediaSession.paused //
-        ? this.#audioForMediaSession.play()
-        : this.#audioForMediaSession.pause();
-
-      navigator.mediaSession.playbackState =
-        navigator.mediaSession.playbackState === "paused" //
-          ? "playing"
-          : "paused";
-    }
-
-    #initMediaSession() {
-      navigator.mediaSession.setActionHandler("play", () => {
-        this.#playPause.click();
-      });
-      navigator.mediaSession.setActionHandler("pause", () => {
-        this.#playPause.click();
-      });
     }
 
     disconnectedCallback() {
@@ -169,8 +141,6 @@ const { props } = Astro;
         this.#seekBar.max = duration.toString();
         this.#duraionValue = duration;
       }
-
-      this.#loadMediaSession(music);
     }
 
     disable() {
@@ -187,28 +157,6 @@ const { props } = Astro;
       this.#playIcon.hide();
       this.#pauseIcon.show();
       this.#enabled = true;
-      this.#enableMediaSession();
-    }
-
-    #enableMediaSession() {
-      this.#audioForMediaSession.play();
-      navigator.mediaSession.playbackState = "playing";
-    }
-
-    #loadMediaSession({ file, metadata }: Music) {
-      this.#audioForMediaSession.pause();
-      navigator.mediaSession.playbackState = "paused";
-
-      navigator.mediaSession.metadata = new MediaMetadata({
-        title: metadata.common.title ?? file.name,
-        artist: metadata.common.artist,
-        album: metadata.common.album,
-      });
-
-      navigator.mediaSession.setPositionState({
-        position: 0,
-        duration: 0,
-      });
     }
 
     update(second: number) {
@@ -216,6 +164,11 @@ const { props } = Astro;
       if (this.#duraionValue && !this.#isUserSeeking) {
         this.#seekBar.value = second.toString();
       }
+    }
+
+    toggleIcon() {
+      this.#playIcon.toggle();
+      this.#pauseIcon.toggle();
     }
   }
   if (!customElements.get("play-control")) {

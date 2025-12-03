@@ -6,6 +6,7 @@ import TempoControl from "./music-player/tempo-control.astro";
 ---
 
 <music-player>
+  <audio src="5-seconds-of-silence.mp3" loop></audio>
   <TitleDisplay class="title-display" />
   <PlayControl class="play-control" />
   <div class="volume-and-tempo">
@@ -29,6 +30,7 @@ import TempoControl from "./music-player/tempo-control.astro";
   export class MusicPlayerElement extends HTMLElement {
     #musicTabulizer!: MusicTabulizerElement;
 
+    #audioForMediaSession!: HTMLAudioElement;
     #titleDisplay!: TitleDisplayElement;
     #playControl!: PlayControlElement;
     #volumeControl!: VolumeControlElement;
@@ -42,10 +44,18 @@ import TempoControl from "./music-player/tempo-control.astro";
     connectedCallback() {
       this.#musicTabulizer = queryMusicTabulizer();
 
+      this.#audioForMediaSession = this.querySelector("audio")!;
       this.#titleDisplay = this.querySelector(".title-display")!;
       this.#playControl = this.querySelector(".play-control")!;
       this.#volumeControl = this.querySelector(".volume-control")!;
       this.#tempoControl = this.querySelector(".tempo-control")!;
+
+      this.#setMediaSessionHandlers();
+    }
+
+    #setMediaSessionHandlers() {
+      navigator.mediaSession.setActionHandler("play", this.togglePlay.bind(this));
+      navigator.mediaSession.setActionHandler("pause", this.togglePlay.bind(this));
     }
 
     set volume(volume: number) {
@@ -67,13 +77,40 @@ import TempoControl from "./music-player/tempo-control.astro";
       this.#volumeControl.load(music);
       this.#tempoControl.load(music);
       this.#loadedMusic = music;
+      this.#loadMediaSession(music);
 
       await this.#musicPlayer.play(music);
       this.#startUpdateDisplay();
-      this.#state = "playing";
+      this.#mediaSessionToPlaying();
       this.#playControl.enable();
       this.#volumeControl.enable();
       this.#tempoControl.enable();
+      this.#state = "playing";
+    }
+
+    #loadMediaSession({ file, metadata }: Music) {
+      navigator.mediaSession.metadata = new MediaMetadata({
+        title: metadata.common.title ?? file.name,
+        artist: metadata.common.artist,
+        album: metadata.common.album,
+      });
+
+      navigator.mediaSession.setPositionState({
+        position: 0,
+        duration: 0,
+      });
+
+      this.#mediaSessionToPaused();
+    }
+
+    #mediaSessionToPlaying() {
+      this.#audioForMediaSession.play();
+      navigator.mediaSession.playbackState = "playing";
+    }
+
+    #mediaSessionToPaused() {
+      this.#audioForMediaSession.pause();
+      navigator.mediaSession.playbackState = "paused";
     }
 
     #stopUpdateDisplay() {
@@ -92,6 +129,7 @@ import TempoControl from "./music-player/tempo-control.astro";
     async togglePlay() {
       await this.#musicPlayer.togglePlay();
       this.#musicTabulizer.togglePlay();
+      this.#playControl.toggleIcon();
 
       switch (this.#state) {
         case "playing":
@@ -103,6 +141,19 @@ import TempoControl from "./music-player/tempo-control.astro";
           this.#startUpdateDisplay();
           break;
       }
+
+      this.#toggleMediaSession();
+    }
+
+    #toggleMediaSession() {
+      this.#audioForMediaSession.paused
+        ? this.#audioForMediaSession.play()
+        : this.#audioForMediaSession.pause();
+
+      navigator.mediaSession.playbackState =
+        navigator.mediaSession.playbackState === "paused" //
+          ? "playing"
+          : "paused";
     }
 
     async seek(toSec: number) {
