@@ -17,8 +17,9 @@ import TempoControl from "./music-player/tempo-control.astro";
 
 <script>
   import type { Music } from "../models/music";
-  import { MusicPlayer } from "../models/music-player";
   import { queryMusicTabulizer } from "../utils/query";
+  import { MediaSessionController } from "./music-player/_helpers/media-session";
+  import { MusicPlayer } from "./music-player/_helpers/music-player";
   import type { TitleDisplayElement } from "./music-player/title-display.astro.0.mts";
   import type { PlayControlElement } from "./music-player/play-control.astro.0.mts";
   import type { VolumeControlElement } from "./music-player/volume-control.astro.0.mts";
@@ -26,6 +27,19 @@ import TempoControl from "./music-player/tempo-control.astro";
   import type { MusicTabulizerElement } from "./music-tabulizer.astro.0.mts";
 
   type State = "unloaded" | "loading" | "playing" | "paused";
+
+  type EventType = GuaranteedEvent | FallibleEvent;
+
+  type GuaranteedEvent =
+    | { type: "SET_VOLUME"; volume: number }
+    | { type: "SET_TEMPO"; tempo: number }
+    | { type: "PLAY" }
+    | { type: "PAUSE" }
+    | { type: "TOGGLE_PLAYING" }
+    | { type: "SEEK"; sec: number }
+    | { type: "TOGGLE_MUTE" };
+
+  type FallibleEvent = { type: "LOAD"; music: Music };
 
   export class MusicPlayerElement extends HTMLElement {
     #musicTabulizer!: MusicTabulizerElement;
@@ -41,6 +55,8 @@ import TempoControl from "./music-player/tempo-control.astro";
     #updateDisplayRequestId = 0;
     #state: State = "unloaded";
 
+    #media!: MediaSessionController;
+
     connectedCallback() {
       this.#musicTabulizer = queryMusicTabulizer();
 
@@ -50,119 +66,195 @@ import TempoControl from "./music-player/tempo-control.astro";
       this.#volumeControl = this.querySelector(".volume-control")!;
       this.#tempoControl = this.querySelector(".tempo-control")!;
 
-      this.#setMediaSessionHandlers();
+      this.#media = new MediaSessionController(this.#audioForMediaSession);
+      this.#media.setActionHandler("play", () => {
+        this.send({ type: "PLAY" });
+      });
+      this.#media.setActionHandler("pause", () => {
+        this.send({ type: "PAUSE" });
+      });
     }
 
-    #setMediaSessionHandlers() {
-      navigator.mediaSession.setActionHandler("play", this.togglePlay.bind(this));
-      navigator.mediaSession.setActionHandler("pause", this.togglePlay.bind(this));
+    async send(event: GuaranteedEvent): Promise<void>;
+    async send(event: FallibleEvent): Promise<boolean>;
+
+    async send(event: EventType) {
+      switch (this.#state) {
+        case "unloaded":
+          return await this.#unloaded(event);
+        case "loading":
+          return await this.#loading(event);
+        case "playing":
+          return await this.#playing(event);
+        case "paused":
+          return await this.#paused(event);
+        default:
+          throw new Error(`event not receivable on this state: ${this.#state}`);
+      }
     }
 
-    set volume(volume: number) {
-      this.#musicPlayer.volume = volume;
-      this.#loadedMusic?.updateSettings({ volume });
+    // dispatchers per state
+
+    async #unloaded(event: EventType) {
+      switch (event.type) {
+        case "LOAD":
+          return await this.#load(event.music);
+        default:
+          throw new Error(`unsupported event type: ${event.type}`);
+      }
     }
 
-    set tempo(tempo: number) {
-      this.#musicPlayer.tempo = tempo;
-      this.#loadedMusic?.updateSettings({ tempo });
+    async #loading(event: EventType) {
+      switch (event.type) {
+        default:
+          throw new Error(`unsupported event type: ${event.type}`);
+      }
     }
 
-    async play(music: Music) {
-      this.#stopUpdateDisplay();
+    async #playing(event: EventType) {
+      switch (event.type) {
+        case "LOAD":
+          return await this.#load(event.music);
+        case "SET_VOLUME":
+          return this.#setVolume(event.volume);
+        case "SET_TEMPO":
+          return this.#setTempo(event.tempo);
+        case "PAUSE":
+          return await this.#pause();
+        case "TOGGLE_PLAYING":
+          return await this.#togglePlaying();
+        case "SEEK":
+          return await this.#seek(event.sec);
+        case "TOGGLE_MUTE":
+          return this.#toggleMute();
+        default:
+          throw new Error(`unsupported event type: ${event.type}`);
+      }
+    }
 
+    async #paused(event: EventType) {
+      switch (event.type) {
+        case "SET_VOLUME":
+          return this.#setVolume(event.volume);
+        case "SET_TEMPO":
+          return this.#setTempo(event.tempo);
+        case "LOAD":
+          return await this.#load(event.music);
+        case "PLAY":
+          return await this.#play();
+        case "TOGGLE_PLAYING":
+          return await this.#togglePlaying();
+        case "SEEK":
+          return await this.#seek(event.sec);
+        case "TOGGLE_MUTE":
+          return this.#toggleMute();
+        default:
+          throw new Error(`unsupported event type: ${event.type}`);
+      }
+    }
+
+    // dispatchees
+
+    async #load(music: Music) {
+      const prevState = this.#state;
       this.#state = "loading";
+
+      this.#playControl.disable();
+      this.#volumeControl.disable();
+      this.#tempoControl.disable();
+
+      this.#playControl.toPaused();
+
+      this.#stopUpdateCurrentTime();
+
       this.#titleDisplay.load(music);
       this.#playControl.load(music);
       this.#volumeControl.load(music);
       this.#tempoControl.load(music);
       this.#loadedMusic = music;
-      this.#loadMediaSession(music);
+      this.#media.loadMetadata(music);
 
-      await this.#musicPlayer.play(music);
-      this.#startUpdateDisplay();
-      this.#mediaSessionToPlaying();
+      try {
+        await this.#musicPlayer.load(music);
+      } catch (e) {
+        console.error(e);
+        this.#state = prevState;
+        return false;
+      }
+
       this.#playControl.enable();
       this.#volumeControl.enable();
       this.#tempoControl.enable();
+
+      this.#state = "paused";
+      return true;
+    }
+
+    #setVolume(volume: number) {
+      this.#musicPlayer.volume = volume;
+      this.#volumeControl.volume = volume;
+      this.#loadedMusic?.updateSettings({ volume });
+    }
+
+    #setTempo(tempo: number) {
+      this.#musicPlayer.tempo = tempo;
+      this.#tempoControl.tempo = tempo;
+      this.#loadedMusic?.updateSettings({ tempo });
+    }
+
+    async #play() {
+      await this.#musicPlayer.play();
+      this.#musicTabulizer.toPlaying(this.#loadedMusic!);
+      this.#playControl.toPlaying();
+      this.#media.toPlaying();
+      this.#startUpdateCurrentTime();
       this.#state = "playing";
     }
 
-    #loadMediaSession({ file, metadata }: Music) {
-      navigator.mediaSession.metadata = new MediaMetadata({
-        title: metadata.common.title ?? file.name,
-        artist: metadata.common.artist,
-        album: metadata.common.album,
-      });
-
-      navigator.mediaSession.setPositionState({
-        position: 0,
-        duration: 0,
-      });
-
-      this.#mediaSessionToPaused();
+    async #pause() {
+      await this.#musicPlayer.pause();
+      this.#musicTabulizer.toPaused(this.#loadedMusic!);
+      this.#playControl.toPaused();
+      this.#media.toPaused();
+      this.#stopUpdateCurrentTime();
+      this.#state = "paused";
     }
 
-    #mediaSessionToPlaying() {
-      this.#audioForMediaSession.play();
-      navigator.mediaSession.playbackState = "playing";
+    async #togglePlaying() {
+      switch (this.#state) {
+        case "paused":
+          return await this.send({ type: "PLAY" });
+        case "playing":
+          return await this.send({ type: "PAUSE" });
+        default:
+          throw new Error(`unsupported state: ${this.#state}`);
+      }
     }
 
-    #mediaSessionToPaused() {
-      this.#audioForMediaSession.pause();
-      navigator.mediaSession.playbackState = "paused";
+    async #seek(toSec: number) {
+      await this.#musicPlayer.seek(toSec);
+      this.#playControl.setCurrentTime(toSec);
     }
 
-    #stopUpdateDisplay() {
+    #toggleMute() {
+      this.#musicPlayer.toggleMute();
+      this.#volumeControl.toggleIcon();
+    }
+
+    // helpers
+
+    #startUpdateCurrentTime() {
+      this.#updateDisplayRequestId = requestAnimationFrame(this.#updateCurrentTime);
+    }
+
+    #stopUpdateCurrentTime() {
       cancelAnimationFrame(this.#updateDisplayRequestId);
     }
 
-    #startUpdateDisplay() {
-      this.#updateDisplayRequestId = requestAnimationFrame(this.#updateDisplay.bind(this));
-    }
-
-    #updateDisplay() {
-      this.#playControl.update(this.#musicPlayer.currentTime ?? 0);
-      this.#updateDisplayRequestId = requestAnimationFrame(this.#updateDisplay.bind(this));
-    }
-
-    async togglePlay() {
-      await this.#musicPlayer.togglePlay();
-      this.#musicTabulizer.togglePlay();
-      this.#playControl.toggleIcon();
-
-      switch (this.#state) {
-        case "playing":
-          this.#state = "paused";
-          this.#stopUpdateDisplay();
-          break;
-        case "paused":
-          this.#state = "playing";
-          this.#startUpdateDisplay();
-          break;
-      }
-
-      this.#toggleMediaSession();
-    }
-
-    #toggleMediaSession() {
-      this.#audioForMediaSession.paused
-        ? this.#audioForMediaSession.play()
-        : this.#audioForMediaSession.pause();
-
-      navigator.mediaSession.playbackState =
-        navigator.mediaSession.playbackState === "paused" //
-          ? "playing"
-          : "paused";
-    }
-
-    async seek(toSec: number) {
-      await this.#musicPlayer.seek(toSec);
-    }
-
-    toggleMute() {
-      this.#musicPlayer.toggleMute();
-    }
+    #updateCurrentTime = () => {
+      this.#playControl.setCurrentTime(this.#musicPlayer.currentTime ?? 0);
+      this.#updateDisplayRequestId = requestAnimationFrame(this.#updateCurrentTime);
+    };
   }
 
   if (!customElements.get("music-player")) {

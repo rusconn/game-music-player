@@ -64,21 +64,21 @@ import LoadingCircle from "./music-tabulizer/loading-circle.astro";
               ?.hide();
           }
 
-          const playingBars = indicator.querySelector<PlaiyingBarsElement>(".playing-bars")!;
           const loadingCircle = indicator.querySelector<LoadingCircleElement>(".loading-circle")!;
 
-          try {
-            playingBars.hide(), loadingCircle.show();
-            await this.#musicPlayer.play(music);
-            loadingCircle.hide(), playingBars.play();
+          loadingCircle.show();
+          const loaded = await this.#musicPlayer.send({ type: "LOAD", music });
+          loadingCircle.hide();
+
+          if (loaded) {
+            await this.#musicPlayer.send({ type: "PLAY" });
             this.#playingMusic = music;
-          } catch {
-            loadingCircle.hide();
+          } else {
             // TODO: avoid blocking
             alert("Sorry, failed to load the music file.\nTry another browser.");
-          } finally {
-            this.#ul.removeAttribute("inert");
           }
+
+          this.#ul.removeAttribute("inert");
         });
 
         const { format, common } = music.metadata;
@@ -100,12 +100,16 @@ import LoadingCircle from "./music-tabulizer/loading-circle.astro";
       this.#ul.prepend(...liFragments);
     }
 
-    togglePlay() {
-      if (this.#playingMusic) {
-        this.#queryRow(this.#playingMusic)
-          ?.querySelector<PlaiyingBarsElement>(".playing-bars")
-          ?.pause();
-      }
+    toPlaying(music: Music) {
+      this.#queryRow(music) //
+        ?.querySelector<PlaiyingBarsElement>(".playing-bars")
+        ?.toPlaying();
+    }
+
+    toPaused(music: Music) {
+      this.#queryRow(music) //
+        ?.querySelector<PlaiyingBarsElement>(".playing-bars")
+        ?.toPaused();
     }
 
     #queryRow(music: Music) {

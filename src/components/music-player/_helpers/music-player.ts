@@ -1,4 +1,4 @@
-import type { Music, Metadata } from "./music";
+import type { Music, Metadata } from "../../../models/music";
 
 export class MusicPlayer {
   #context!: AudioContext;
@@ -29,11 +29,10 @@ export class MusicPlayer {
     return (this.#context.currentTime - this.#intervalStartTime) * this.#source.playbackRate.value;
   }
 
-  async play(music: Music) {
+  async load(music: Music) {
     if (!this.#initialized()) this.#init();
 
     this.volume = 0;
-    await this.#context.resume();
     await this.#renewSource({ music });
     this.#accElapsedTime = 0;
     this.#intervalStartTime = this.#context.currentTime;
@@ -45,12 +44,23 @@ export class MusicPlayer {
     });
   }
 
+  async play() {
+    if (!this.#initialized()) return;
+    await this.#context.resume();
+  }
+
+  async pause() {
+    if (!this.#initialized()) return;
+    await this.#context.suspend();
+  }
+
   #initialized() {
     return this.#context != null;
   }
 
   #init() {
     this.#context = new AudioContext();
+    this.#context.suspend();
     this.#source = this.#context.createBufferSource();
     this.#gainNode = new GainNode(this.#context, { gain: 1.0 });
     this.#muteNode = new GainNode(this.#context, { gain: 1.0 });
@@ -59,11 +69,11 @@ export class MusicPlayer {
       .connect(this.#muteNode)
       .connect(this.#context.destination);
 
-    requestAnimationFrame(this.#updateTimes.bind(this));
+    requestAnimationFrame(this.#updateTimes);
   }
 
   // NOTE: requestAnimationFrame may not be executed if the page is inactive
-  #updateTimes() {
+  #updateTimes = () => {
     const currentTime = this.#accElapsedTime + this.#intervalElapsedTime();
 
     // FIXME: loopStart may be set after the entire loop of a range loop music (does this happen if renew is preempted?)
@@ -81,14 +91,8 @@ export class MusicPlayer {
       }
     }
 
-    requestAnimationFrame(this.#updateTimes.bind(this));
-  }
-
-  async togglePlay() {
-    return this.#context.state === "suspended" //
-      ? await this.#context.resume()
-      : await this.#context.suspend();
-  }
+    requestAnimationFrame(this.#updateTimes);
+  };
 
   async seek(toSec: number) {
     await this.#renewSource({ offset: toSec });

@@ -47,17 +47,14 @@ const { props } = Astro;
       this.#volumeBar = this.querySelector(".volume-bar")!;
       this.#volumeText = this.querySelector(".volume-text")!;
 
-      this.#muteButton.addEventListener("click", () => {
-        this.#musicPlayer.toggleMute();
-        this.#volumeIcon.toggle();
-        this.#mutedIcon.toggle();
+      this.#muteButton.addEventListener("click", async () => {
+        await this.#musicPlayer.send({ type: "TOGGLE_MUTE" });
       });
 
-      this.#volumeBar.addEventListener("input", (e) => {
+      this.#volumeBar.addEventListener("input", async (e) => {
         const input = e.target as HTMLInputElement;
         const value = Number(input.value);
-        this.#musicPlayer.volume = value / 100;
-        this.#volumeText.textContent = value.toString();
+        await this.#musicPlayer.send({ type: "SET_VOLUME", volume: value / 100 });
       });
 
       document.addEventListener("keydown", this.#handleMuteKeyDown);
@@ -75,7 +72,7 @@ const { props } = Astro;
       }
     };
 
-    #handleVolumeKeyDown = (e: KeyboardEvent) => {
+    #handleVolumeKeyDown = async (e: KeyboardEvent) => {
       if (!e.metaKey) return;
 
       const oldValue = Number(this.#volumeBar.value);
@@ -95,30 +92,35 @@ const { props } = Astro;
       }
 
       if (newValue != null) {
-        this.#musicPlayer.volume = newValue / 100;
-        this.#volumeBar.value = newValue.toString();
-        this.#volumeText.textContent = newValue.toString();
+        await this.#musicPlayer.send({ type: "SET_VOLUME", volume: newValue / 100 });
       }
     };
 
-    load({ settings }: Music) {
-      this.disable();
+    set volume(volume: number) {
+      const volumeValue = Math.round(volume * 100).toString();
+      this.#volumeBar.value = volumeValue;
+      this.#volumeText.textContent = volumeValue;
+    }
 
-      const { volume } = settings;
-      this.#volumeBar.value = (volume * 100).toString();
-      this.#volumeText.textContent = (volume * 100).toString();
+    load({ settings }: Music) {
+      this.volume = settings.volume;
     }
 
     disable() {
-      this.#enabled = false;
       this.#muteButton.disable();
       this.#volumeBar.disable();
+      this.#enabled = false;
     }
 
     enable() {
       this.#muteButton.enable();
       this.#volumeBar.enable();
       this.#enabled = true;
+    }
+
+    toggleIcon() {
+      this.#volumeIcon.toggle();
+      this.#mutedIcon.toggle();
     }
   }
 

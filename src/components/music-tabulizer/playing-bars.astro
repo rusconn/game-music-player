@@ -20,22 +20,16 @@ const { props } = Astro;
       this.#playingBars = this.querySelectorAll("span");
     }
 
-    play() {
+    toPlaying() {
       for (const bar of this.#playingBars) {
         bar.classList.remove("paused");
-        this.#show();
-      }
-    }
-
-    pause() {
-      for (const bar of this.#playingBars) {
-        bar.classList.toggle("paused");
-      }
-    }
-
-    #show() {
-      for (const bar of this.#playingBars) {
         bar.classList.remove("hidden");
+      }
+    }
+
+    toPaused() {
+      for (const bar of this.#playingBars) {
+        bar.classList.add("paused");
       }
     }
 

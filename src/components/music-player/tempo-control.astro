@@ -41,17 +41,14 @@ const { props } = Astro;
       this.#tempoBar = this.querySelector(".tempo-bar")!;
       this.#tempoText = this.querySelector(".tempo-text")!;
 
-      this.#tempoButton.addEventListener("click", () => {
-        this.#musicPlayer.tempo = 1.0;
-        this.#tempoBar.value = "1";
-        this.#tempoText.textContent = "1.00";
+      this.#tempoButton.addEventListener("click", async () => {
+        await this.#musicPlayer.send({ type: "SET_TEMPO", tempo: 1.0 });
       });
 
-      this.#tempoBar.addEventListener("input", (e) => {
+      this.#tempoBar.addEventListener("input", async (e) => {
         const input = e.target as HTMLInputElement;
         const value = Number(input.value);
-        this.#musicPlayer.tempo = value;
-        this.#tempoText.textContent = value.toFixed(2);
+        await this.#musicPlayer.send({ type: "SET_TEMPO", tempo: value });
       });
 
       document.addEventListener("keydown", this.#handleTempoKeyDown);
@@ -61,7 +58,7 @@ const { props } = Astro;
       document.removeEventListener("keydown", this.#handleTempoKeyDown);
     }
 
-    #handleTempoKeyDown = (e: KeyboardEvent) => {
+    #handleTempoKeyDown = async (e: KeyboardEvent) => {
       if (!e.shiftKey) return;
 
       const oldValue = Number(this.#tempoBar.value);
@@ -81,25 +78,24 @@ const { props } = Astro;
       }
 
       if (newValue != null) {
-        const fixedNewValue = newValue.toFixed(2);
-        this.#musicPlayer.tempo = Number(fixedNewValue);
-        this.#tempoBar.value = fixedNewValue;
-        this.#tempoText.textContent = fixedNewValue;
+        await this.#musicPlayer.send({ type: "SET_TEMPO", tempo: newValue });
       }
     };
 
-    load({ settings }: Music) {
-      this.disable();
+    set tempo(tempo: number) {
+      const tempoValue = tempo.toFixed(2);
+      this.#tempoBar.value = tempoValue;
+      this.#tempoText.textContent = tempoValue;
+    }
 
-      const { tempo } = settings;
-      this.#tempoBar.value = tempo.toString();
-      this.#tempoText.textContent = tempo.toFixed(2);
+    load({ settings }: Music) {
+      this.tempo = settings.tempo;
     }
 
     disable() {
-      this.#enabled = false;
       this.#tempoButton.disable();
       this.#tempoBar.disable();
+      this.#enabled = false;
     }
 
     enable() {

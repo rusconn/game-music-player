@@ -50,21 +50,14 @@ const { props } = Astro;
       this.#seekBar = this.querySelector(".seek-bar")!;
       this.#currentTime = this.querySelector(".current-time")!;
 
-      this.#playPause.addEventListener("click", () => {
-        this.#musicPlayer.togglePlay();
-      });
-
-      this.#seekBar.addEventListener("input", (e) => {
-        const input = e.target as HTMLInputElement;
-        const second = Number(input.value);
-        this.#currentTime.textContent = formatSec(second);
+      this.#playPause.addEventListener("click", async () => {
+        await this.#musicPlayer.send({ type: "TOGGLE_PLAYING" });
       });
 
       this.#seekBar.addEventListener("change", async (e) => {
         const input = e.target as HTMLInputElement;
         const second = Number(input.value);
-        await this.#musicPlayer.seek(second);
-        this.#currentTime.textContent = formatSec(second);
+        await this.#musicPlayer.send({ type: "SEEK", sec: second });
       });
 
       this.#seekBar.addEventListener("mousedown", () => {
@@ -123,18 +116,12 @@ const { props } = Astro;
       }
 
       if (newValue != null) {
-        const fixedNewValue = newValue.toFixed(2);
-        await this.#musicPlayer.seek(newValue);
-        this.#seekBar.value = fixedNewValue;
-        this.#currentTime.textContent = formatSec(newValue);
+        await this.#musicPlayer.send({ type: "SEEK", sec: newValue });
       }
     };
 
     load(music: Music) {
-      this.disable();
-
-      this.#seekBar.value = "0";
-      this.#currentTime.textContent = "0:00";
+      this.setCurrentTime(0);
 
       const { duration } = music.metadata.format;
       if (duration != null) {
@@ -144,33 +131,35 @@ const { props } = Astro;
     }
 
     disable() {
-      this.#enabled = false;
       this.#playPause.disable();
       this.#seekBar.disable();
-      this.#playIcon.show();
-      this.#pauseIcon.hide();
+      this.#enabled = false;
     }
 
     enable() {
       this.#playPause.enable();
       this.#seekBar.enable();
-      this.#playIcon.hide();
-      this.#pauseIcon.show();
       this.#enabled = true;
     }
 
-    update(second: number) {
-      this.#currentTime.textContent = formatSec(second);
-      if (this.#duraionValue && !this.#isUserSeeking) {
-        this.#seekBar.value = second.toString();
-      }
+    toPlaying() {
+      this.#playIcon.hide();
+      this.#pauseIcon.show();
     }
 
-    toggleIcon() {
-      this.#playIcon.toggle();
-      this.#pauseIcon.toggle();
+    toPaused() {
+      this.#playIcon.show();
+      this.#pauseIcon.hide();
+    }
+
+    setCurrentTime(second: number) {
+      this.#currentTime.textContent = formatSec(second);
+      if (this.#duraionValue && !this.#isUserSeeking) {
+        this.#seekBar.value = second.toFixed(3);
+      }
     }
   }
+
   if (!customElements.get("play-control")) {
     customElements.define("play-control", PlayControlElement);
   }
