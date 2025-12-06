@@ -13,7 +13,6 @@ type Shortcut =
 
 export class ShortcutKeyHandler {
   #musicPlayer: MusicPlayerElement;
-  #enabled = false;
 
   constructor(musicPlayer: MusicPlayerElement) {
     this.#musicPlayer = musicPlayer;
@@ -32,21 +31,10 @@ export class ShortcutKeyHandler {
 
     if (shortcut) {
       e.preventDefault();
-
-      if (this.#enabled) {
-        const event = shortcutEventMap[shortcut];
-        return await this.#musicPlayer.send(event);
-      }
+      const event = shortcutEventMap[shortcut];
+      return await this.#musicPlayer.send(event);
     }
   };
-
-  enable() {
-    this.#enabled = true;
-  }
-
-  disable() {
-    this.#enabled = false;
-  }
 }
 
 const parseShortcut = (e: KeyboardEvent): Shortcut | undefined => {

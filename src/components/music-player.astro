@@ -105,7 +105,7 @@ import TempoControl from "./music-player/tempo-control.astro";
         case "paused":
           return await this.#paused(event);
         default:
-          throw new Error(`event not receivable on this state: ${this.#state}`);
+          throw new Error(`unknown state: ${this.#state satisfies never}`);
       }
     }
 
@@ -115,15 +115,11 @@ import TempoControl from "./music-player/tempo-control.astro";
       switch (event.type) {
         case "LOAD":
           return await this.#load(event.music);
-        default:
-          throw new Error(`unsupported event type: ${event.type}`);
       }
     }
 
     async #loading(event: EventType) {
       switch (event.type) {
-        default:
-          throw new Error(`unsupported event type: ${event.type}`);
       }
     }
 
@@ -197,8 +193,6 @@ import TempoControl from "./music-player/tempo-control.astro";
           return await this.#seekForward(event.secs);
         case "TOGGLE_MUTE":
           return this.#toggleMute();
-        default:
-          throw new Error(`unsupported event type: ${event.type}`);
       }
     }
 
@@ -262,8 +256,6 @@ import TempoControl from "./music-player/tempo-control.astro";
           return await this.send({ type: "PLAY" });
         case "playing":
           return await this.send({ type: "PAUSE" });
-        default:
-          throw new Error(`unsupported state: ${this.#state}`);
       }
     }
 
@@ -295,16 +287,12 @@ import TempoControl from "./music-player/tempo-control.astro";
       this.#playControl.disable();
       this.#volumeControl.disable();
       this.#tempoControl.disable();
-      this.#shortcutKey.disable();
-      this.#media.disable();
     }
 
     #enableAllControls() {
       this.#playControl.enable();
       this.#volumeControl.enable();
       this.#tempoControl.enable();
-      this.#shortcutKey.enable();
-      this.#media.enable();
     }
 
     #pauseUI() {

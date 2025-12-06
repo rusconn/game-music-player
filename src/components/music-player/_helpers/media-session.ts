@@ -2,7 +2,6 @@ import type { Music } from "../../../models/music";
 
 export class MediaSessionController {
   #audio: HTMLAudioElement;
-  #enabled = false;
 
   constructor(audio: HTMLAudioElement) {
     this.#audio = audio;
@@ -32,23 +31,11 @@ export class MediaSessionController {
     navigator.mediaSession.setPositionState(state);
   }
 
-  setActionHandler(action: MediaSessionAction, handler: () => void) {
-    navigator.mediaSession.setActionHandler(action, () => {
-      if (this.#enabled) {
-        handler();
-      }
-    });
+  setActionHandler(action: MediaSessionAction, handler: MediaSessionActionHandler) {
+    navigator.mediaSession.setActionHandler(action, handler);
   }
 
   #setMetadata(init: MediaMetadataInit) {
     navigator.mediaSession.metadata = new MediaMetadata(init);
-  }
-
-  enable() {
-    this.#enabled = true;
-  }
-
-  disable() {
-    this.#enabled = false;
   }
 }
