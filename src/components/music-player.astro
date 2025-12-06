@@ -296,6 +296,7 @@ import TempoControl from "./music-player/tempo-control.astro";
       this.#volumeControl.disable();
       this.#tempoControl.disable();
       this.#shortcutKey.disable();
+      this.#media.disable();
     }
 
     #enableAllControls() {
@@ -303,6 +304,7 @@ import TempoControl from "./music-player/tempo-control.astro";
       this.#volumeControl.enable();
       this.#tempoControl.enable();
       this.#shortcutKey.enable();
+      this.#media.enable();
     }
 
     #pauseUI() {
