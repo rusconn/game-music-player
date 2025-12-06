@@ -21,7 +21,7 @@ import LoadingCircle from "./music-list/loading-circle.astro";
 </music-list>
 
 <script>
-  import { Music } from "../models/music";
+  import * as Music from "../models/music";
   import { formatSec } from "../utils/format";
   import { queryMusicPlayer } from "../utils/query";
   import type { MusicPlayerElement } from "./music-player.astro.0.mts";
@@ -34,7 +34,7 @@ import LoadingCircle from "./music-list/loading-circle.astro";
     #ul!: HTMLUListElement;
     #liTemplate!: HTMLTemplateElement;
 
-    #playingMusic: Music | undefined;
+    #playingMusic: Music.Music | undefined;
 
     connectedCallback() {
       this.#musicPlayer = queryMusicPlayer();
@@ -100,19 +100,19 @@ import LoadingCircle from "./music-list/loading-circle.astro";
       this.#ul.prepend(...liFragments);
     }
 
-    toPlaying(music: Music) {
+    toPlaying(music: Music.Music) {
       this.#queryRow(music) //
         ?.querySelector<PlaiyingBarsElement>(".playing-bars")
         ?.toPlaying();
     }
 
-    toPaused(music: Music) {
+    toPaused(music: Music.Music) {
       this.#queryRow(music) //
         ?.querySelector<PlaiyingBarsElement>(".playing-bars")
         ?.toPaused();
     }
 
-    #queryRow(music: Music) {
+    #queryRow(music: Music.Music) {
       return this.querySelector(`li[data-id=${music.id}]`);
     }
   }

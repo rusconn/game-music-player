@@ -1,70 +1,42 @@
-import { parseBlob } from "music-metadata";
+import { parseBlob, type IAudioMetadata } from "music-metadata";
 
 import { hash } from "../lib/hash";
-import { storage } from "./storage/mod";
-import { type Settings, type MusicInfo, mergeDeep } from "./storage/music/info";
+import * as MusicStorage from "../storage/music";
 
-export type { Metadata } from "./storage/music/info";
+export type Music = {
+  id: MusicId;
+  file: File;
+  metadata: Metadata;
+  settings: Settings;
+};
 
-export class Music {
-  #id: MusicId;
-  #file: File;
-  #info: MusicInfo;
-  #storage: ReturnType<typeof createStorage>;
+export type MusicId = Awaited<ReturnType<typeof musicId>>;
 
-  private constructor(id: MusicId, file: File, info: MusicInfo) {
-    this.#id = id;
-    this.#file = file;
-    this.#info = info;
-    this.#storage = createStorage(id);
-  }
+export type Metadata = IAudioMetadata;
 
-  get id() {
-    return this.#id;
-  }
+export type Settings = {
+  volume: number;
+  tempo: number;
+};
 
-  get file() {
-    return this.#file;
-  }
+export const parse = async (file: File): Promise<Music | undefined> => {
+  const id = await musicId(file);
+  const info = MusicStorage.get(id);
 
-  get metadata() {
-    return this.#info.metadata;
-  }
-
-  get settings() {
-    return this.#info.settings;
-  }
-
-  static async parse(file: File): Promise<Music | undefined> {
-    const id = await musicId(file);
-
+  if (info) {
+    return { id, file, ...info };
+  } else {
     try {
-      const maybeInfo = storage.music.info.get(id);
-      let info: MusicInfo;
-
-      if (maybeInfo) {
-        info = maybeInfo;
-      } else {
-        const metadata = await parseBlob(file, { skipCovers: true });
-        const settings = { volume: 1, tempo: 1 };
-        info = { metadata, settings };
-        storage.music.info.set(id)(info);
-      }
-
-      return new Music(id, file, info);
+      const metadata = await parseBlob(file, { skipCovers: true });
+      const settings = { volume: 1, tempo: 1 };
+      MusicStorage.set(id, { metadata, settings });
+      return { id, file, metadata, settings };
     } catch (e) {
       console.error(e);
       return undefined;
     }
   }
-
-  updateSettings(settings: Partial<Settings>) {
-    this.#info = mergeDeep(this.#info, { settings });
-    this.#storage.info.update({ settings });
-  }
-}
-
-export type MusicId = Awaited<ReturnType<typeof musicId>>;
+};
 
 const musicId = async (file: File) => {
   return `music-${await digest(file)}` as const;
@@ -74,11 +46,3 @@ const digest = async (file: File) => {
   const buffer = await file.arrayBuffer();
   return await hash("SHA-1", buffer);
 };
-
-const createStorage = (id: MusicId) => ({
-  info: {
-    get: () => storage.music.info.get(id),
-    set: storage.music.info.set(id),
-    update: storage.music.info.update(id),
-  },
-});

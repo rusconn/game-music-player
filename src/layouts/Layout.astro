@@ -14,13 +14,11 @@
 </html>
 
 <script>
-  import { storage } from "../models/storage/mod";
+  import * as MusicStorage from "../storage/music";
 
   document.addEventListener(
-    "DOMContentLoaded",
-    () => {
-      storage.migrateIfNeeded();
-    },
+    "DOMContentLoaded", //
+    MusicStorage.migrateIfNeeded,
     { once: true }
   );
 
