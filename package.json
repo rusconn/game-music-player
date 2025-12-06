@@ -8,13 +8,11 @@
   },
   "scripts": {
     "dev": "astro dev",
-    "start": "astro dev",
-    "build": "astro check && astro build",
+    "check": "astro check && prettier --cache --check .",
+    "build": "astro build",
     "preview": "astro preview",
     "login": "firebase login",
-    "deploy": "firebase deploy --project game-music-player-web",
-    "astro": "astro",
-    "format": "prettier --cache --write ."
+    "deploy": "firebase deploy --project game-music-player-web"
   },
   "dependencies": {
     "music-metadata": "10.5.1"
