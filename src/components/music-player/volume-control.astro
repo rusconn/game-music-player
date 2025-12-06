@@ -36,8 +36,6 @@ const { props } = Astro;
     #volumeBar!: ControlBarElement;
     #volumeText!: HTMLSpanElement;
 
-    #enabled = false;
-
     connectedCallback() {
       this.#musicPlayer = queryMusicPlayer();
 
@@ -56,50 +54,24 @@ const { props } = Astro;
         const value = Number(input.value);
         await this.#musicPlayer.send({ type: "SET_VOLUME", volume: value / 100 });
       });
-
-      document.addEventListener("keydown", this.#handleMuteKeyDown);
-      document.addEventListener("keydown", this.#handleVolumeKeyDown);
     }
 
-    disconnectedCallback() {
-      document.removeEventListener("keydown", this.#handleMuteKeyDown);
-      document.removeEventListener("keydown", this.#handleVolumeKeyDown);
+    get volume() {
+      return Number(this.#volumeBar.value) / 100;
     }
-
-    #handleMuteKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "m") {
-        this.#muteButton.click();
-      }
-    };
-
-    #handleVolumeKeyDown = async (e: KeyboardEvent) => {
-      if (!e.metaKey) return;
-
-      const oldValue = Number(this.#volumeBar.value);
-
-      let newValue;
-      if (e.key === "ArrowDown") {
-        e.preventDefault();
-        if (this.#enabled) {
-          newValue = Math.max(0, oldValue - 5);
-        }
-      }
-      if (e.key === "ArrowUp") {
-        e.preventDefault();
-        if (this.#enabled) {
-          newValue = Math.min(100, oldValue + 5);
-        }
-      }
-
-      if (newValue != null) {
-        await this.#musicPlayer.send({ type: "SET_VOLUME", volume: newValue / 100 });
-      }
-    };
 
     set volume(volume: number) {
       const volumeValue = Math.round(volume * 100).toString();
       this.#volumeBar.value = volumeValue;
       this.#volumeText.textContent = volumeValue;
+    }
+
+    get min() {
+      return Number(this.#volumeBar.min) / 100;
+    }
+
+    get max() {
+      return Number(this.#volumeBar.max) / 100;
     }
 
     load({ settings }: Music) {
@@ -109,13 +81,11 @@ const { props } = Astro;
     disable() {
       this.#muteButton.disable();
       this.#volumeBar.disable();
-      this.#enabled = false;
     }
 
     enable() {
       this.#muteButton.enable();
       this.#volumeBar.enable();
-      this.#enabled = true;
     }
 
     toggleIcon() {

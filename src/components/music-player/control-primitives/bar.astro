@@ -23,6 +23,10 @@ const { id, class: class_, ...rest } = props;
       return this.#input.value;
     }
 
+    get min() {
+      return this.#input.min;
+    }
+
     get max() {
       return this.#input.max;
     }

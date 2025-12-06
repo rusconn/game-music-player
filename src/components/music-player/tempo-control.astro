@@ -32,8 +32,6 @@ const { props } = Astro;
     #tempoBar!: ControlBarElement;
     #tempoText!: HTMLSpanElement;
 
-    #enabled = false;
-
     connectedCallback() {
       this.#musicPlayer = queryMusicPlayer();
 
@@ -50,42 +48,24 @@ const { props } = Astro;
         const value = Number(input.value);
         await this.#musicPlayer.send({ type: "SET_TEMPO", tempo: value });
       });
-
-      document.addEventListener("keydown", this.#handleTempoKeyDown);
     }
 
-    disconnectedCallback() {
-      document.removeEventListener("keydown", this.#handleTempoKeyDown);
+    get tempo() {
+      return Number(this.#tempoBar.value);
     }
-
-    #handleTempoKeyDown = async (e: KeyboardEvent) => {
-      if (!e.shiftKey) return;
-
-      const oldValue = Number(this.#tempoBar.value);
-
-      let newValue;
-      if (e.key === "ArrowDown") {
-        e.preventDefault();
-        if (this.#enabled) {
-          newValue = Math.max(0.5, oldValue - 0.01);
-        }
-      }
-      if (e.key === "ArrowUp") {
-        e.preventDefault();
-        if (this.#enabled) {
-          newValue = Math.min(1.5, oldValue + 0.01);
-        }
-      }
-
-      if (newValue != null) {
-        await this.#musicPlayer.send({ type: "SET_TEMPO", tempo: newValue });
-      }
-    };
 
     set tempo(tempo: number) {
       const tempoValue = tempo.toFixed(2);
       this.#tempoBar.value = tempoValue;
       this.#tempoText.textContent = tempoValue;
+    }
+
+    get min() {
+      return Number(this.#tempoBar.min);
+    }
+
+    get max() {
+      return Number(this.#tempoBar.max);
     }
 
     load({ settings }: Music) {
@@ -95,13 +75,11 @@ const { props } = Astro;
     disable() {
       this.#tempoButton.disable();
       this.#tempoBar.disable();
-      this.#enabled = false;
     }
 
     enable() {
       this.#tempoButton.enable();
       this.#tempoBar.enable();
-      this.#enabled = true;
     }
   }
 

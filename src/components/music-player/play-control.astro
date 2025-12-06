@@ -39,7 +39,6 @@ const { props } = Astro;
 
     #duraionValue: Music["metadata"]["format"]["duration"];
     #isUserSeeking = false;
-    #enabled = false;
 
     connectedCallback() {
       this.#musicPlayer = queryMusicPlayer();
@@ -57,7 +56,7 @@ const { props } = Astro;
       this.#seekBar.addEventListener("change", async (e) => {
         const input = e.target as HTMLInputElement;
         const second = Number(input.value);
-        await this.#musicPlayer.send({ type: "SEEK", sec: second });
+        await this.#musicPlayer.send({ type: "SEEK_TO", sec: second });
       });
 
       this.#seekBar.addEventListener("mousedown", () => {
@@ -77,51 +76,29 @@ const { props } = Astro;
       this.#seekBar.addEventListener("touchend", () => {
         this.#isUserSeeking = false;
       });
-
-      document.addEventListener("keydown", this.#handlePlayKeyDown);
-      document.addEventListener("keydown", this.#handleSeekKeyDown);
     }
 
-    disconnectedCallback() {
-      document.removeEventListener("keydown", this.#handlePlayKeyDown);
-      document.removeEventListener("keydown", this.#handleSeekKeyDown);
+    get time() {
+      return Number(this.#seekBar.value);
     }
 
-    #handlePlayKeyDown = (e: KeyboardEvent) => {
-      // shouldn't we override the spacebar behavior??
-      if (e.key === "p" || e.key === " ") {
-        e.preventDefault();
-        if (this.#enabled) {
-          this.#playPause.click();
-        }
+    set time(second: number) {
+      this.#currentTime.textContent = formatSec(second);
+      if (this.#duraionValue && !this.#isUserSeeking) {
+        this.#seekBar.value = second.toFixed(3);
       }
-    };
+    }
 
-    #handleSeekKeyDown = async (e: KeyboardEvent) => {
-      const oldValue = Number(this.#seekBar.value);
-      const max = Number(this.#seekBar.max);
+    get min() {
+      return Number(this.#seekBar.min);
+    }
 
-      let newValue;
-      if (e.key === "ArrowLeft") {
-        e.preventDefault();
-        if (this.#enabled) {
-          newValue = Math.max(0, oldValue - 5);
-        }
-      }
-      if (e.key === "ArrowRight") {
-        e.preventDefault();
-        if (this.#enabled) {
-          newValue = Math.min(max, oldValue + 5);
-        }
-      }
-
-      if (newValue != null) {
-        await this.#musicPlayer.send({ type: "SEEK", sec: newValue });
-      }
-    };
+    get max() {
+      return Number(this.#seekBar.max);
+    }
 
     load(music: Music) {
-      this.setCurrentTime(0);
+      this.time = 0;
 
       const { duration } = music.metadata.format;
       if (duration != null) {
@@ -133,13 +110,11 @@ const { props } = Astro;
     disable() {
       this.#playPause.disable();
       this.#seekBar.disable();
-      this.#enabled = false;
     }
 
     enable() {
       this.#playPause.enable();
       this.#seekBar.enable();
-      this.#enabled = true;
     }
 
     toPlaying() {
@@ -150,13 +125,6 @@ const { props } = Astro;
     toPaused() {
       this.#playIcon.show();
       this.#pauseIcon.hide();
-    }
-
-    setCurrentTime(second: number) {
-      this.#currentTime.textContent = formatSec(second);
-      if (this.#duraionValue && !this.#isUserSeeking) {
-        this.#seekBar.value = second.toFixed(3);
-      }
     }
   }
 

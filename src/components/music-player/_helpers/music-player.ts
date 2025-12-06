@@ -94,7 +94,7 @@ export class MusicPlayer {
     requestAnimationFrame(this.#updateTimes);
   };
 
-  async seek(toSec: number) {
+  async seekTo(toSec: number) {
     await this.#renewSource({ offset: toSec });
     this.#accElapsedTime = toSec;
     this.#intervalStartTime = this.#context.currentTime;
