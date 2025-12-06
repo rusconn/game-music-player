@@ -35,7 +35,7 @@ export class Music {
     return this.#info.settings;
   }
 
-  static async tryFrom(file: File): Promise<Music | undefined> {
+  static async parse(file: File): Promise<Music | undefined> {
     const id = await musicId(file);
 
     try {

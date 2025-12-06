@@ -45,7 +45,7 @@ import LoadingCircle from "./music-tabulizer/loading-circle.astro";
 
     async add(files: FileList) {
       const willMaybeLiFragments = [...files].map(async (file) => {
-        const music = await Music.tryFrom(file);
+        const music = await Music.parse(file);
 
         // TODO: make some announcement
         if (!music) return;
@@ -95,7 +95,7 @@ import LoadingCircle from "./music-tabulizer/loading-circle.astro";
       });
 
       const maybeLiFragments = await Promise.all(willMaybeLiFragments);
-      const liFragments = maybeLiFragments.filter((mtrf) => !!mtrf);
+      const liFragments = maybeLiFragments.filter((mlif) => !!mlif);
 
       this.#ul.prepend(...liFragments);
     }

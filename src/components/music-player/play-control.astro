@@ -59,23 +59,10 @@ const { props } = Astro;
         await this.#musicPlayer.send({ type: "SEEK_TO", sec: second });
       });
 
-      this.#seekBar.addEventListener("mousedown", () => {
-        this.#isUserSeeking = true;
-      });
-
-      this.#seekBar.addEventListener("mouseup", () => {
-        this.#isUserSeeking = false;
-      });
-
-      this.#seekBar.addEventListener(
-        "touchstart", //
-        () => (this.#isUserSeeking = true),
-        { passive: true }
-      );
-
-      this.#seekBar.addEventListener("touchend", () => {
-        this.#isUserSeeking = false;
-      });
+      this.#seekBar.addEventListener("mousedown", this.#startSeek);
+      this.#seekBar.addEventListener("mouseup", this.#endSeek);
+      this.#seekBar.addEventListener("touchstart", this.#startSeek, { passive: true });
+      this.#seekBar.addEventListener("touchend", this.#endSeek);
     }
 
     get time() {
@@ -126,6 +113,14 @@ const { props } = Astro;
       this.#playIcon.show();
       this.#pauseIcon.hide();
     }
+
+    #startSeek = () => {
+      this.#isUserSeeking = true;
+    };
+
+    #endSeek = () => {
+      this.#isUserSeeking = false;
+    };
   }
 
   if (!customElements.get("play-control")) {

@@ -129,38 +129,49 @@ import TempoControl from "./music-player/tempo-control.astro";
 
     async #playing(event: EventType) {
       switch (event.type) {
-        case "LOAD":
-          return await this.#load(event.music);
-        case "SET_VOLUME":
-          return this.#setVolume(event.volume);
-        case "DOWN_VOLUME":
-          return await this.#downVolume(event.amount);
-        case "UP_VOLUME":
-          return await this.#upVolume(event.amount);
-        case "SET_TEMPO":
-          return this.#setTempo(event.tempo);
-        case "DOWN_TEMPO":
-          return await this.#downTempo(event.amount);
-        case "UP_TEMPO":
-          return await this.#upTempo(event.amount);
         case "PAUSE":
           return await this.#pause();
-        case "TOGGLE_PLAYING":
-          return await this.#togglePlaying();
-        case "SEEK_TO":
-          return await this.#seekTo(event.sec);
-        case "SEEK_BACKWARD":
-          return await this.#seekBackward(event.secs);
-        case "SEEK_FORWARD":
-          return await this.#seekForward(event.secs);
-        case "TOGGLE_MUTE":
-          return this.#toggleMute();
         default:
-          throw new Error(`unsupported event type: ${event.type}`);
+          return await this.#playingPausedShared(event);
       }
     }
 
     async #paused(event: EventType) {
+      switch (event.type) {
+        case "PLAY":
+          return await this.#play();
+        default:
+          return await this.#playingPausedShared(event);
+      }
+    }
+
+    // dispatchees
+
+    async #load(music: Music) {
+      const prevState = this.#state;
+      this.#state = "loading";
+
+      this.#disableAllControls();
+      this.#pauseUI();
+      this.#loadToUI(music);
+      this.#media.loadMetadata(music);
+      this.#loadedMusic = music;
+
+      try {
+        await this.#musicPlayer.load(music);
+      } catch (e) {
+        console.error(e);
+        this.#state = prevState;
+        return false;
+      }
+
+      this.#enableAllControls();
+
+      this.#state = "paused";
+      return true;
+    }
+
+    async #playingPausedShared(event: EventType) {
       switch (event.type) {
         case "LOAD":
           return await this.#load(event.music);
@@ -176,8 +187,6 @@ import TempoControl from "./music-player/tempo-control.astro";
           return await this.#downTempo(event.amount);
         case "UP_TEMPO":
           return await this.#upTempo(event.amount);
-        case "PLAY":
-          return await this.#play();
         case "TOGGLE_PLAYING":
           return await this.#togglePlaying();
         case "SEEK_TO":
@@ -193,45 +202,6 @@ import TempoControl from "./music-player/tempo-control.astro";
       }
     }
 
-    // dispatchees
-
-    async #load(music: Music) {
-      const prevState = this.#state;
-      this.#state = "loading";
-
-      this.#playControl.disable();
-      this.#volumeControl.disable();
-      this.#tempoControl.disable();
-      this.#shortcutKey.disable();
-
-      this.#playControl.toPaused();
-
-      this.#stopUpdateCurrentTime();
-
-      this.#titleDisplay.load(music);
-      this.#playControl.load(music);
-      this.#volumeControl.load(music);
-      this.#tempoControl.load(music);
-      this.#loadedMusic = music;
-      this.#media.loadMetadata(music);
-
-      try {
-        await this.#musicPlayer.load(music);
-      } catch (e) {
-        console.error(e);
-        this.#state = prevState;
-        return false;
-      }
-
-      this.#playControl.enable();
-      this.#volumeControl.enable();
-      this.#tempoControl.enable();
-      this.#shortcutKey.enable();
-
-      this.#state = "paused";
-      return true;
-    }
-
     #setVolume(volume: number) {
       this.#musicPlayer.volume = volume;
       this.#volumeControl.volume = volume;
@@ -239,17 +209,15 @@ import TempoControl from "./music-player/tempo-control.astro";
     }
 
     async #downVolume(amount: number) {
-      const vol = this.#volumeControl.volume;
-      const min = this.#volumeControl.min;
-      const volume = Math.max(min, vol - amount);
-      return await this.send({ type: "SET_VOLUME", volume });
+      const { min, volume } = this.#volumeControl;
+      const newVolume = Math.max(min, volume - amount);
+      return await this.send({ type: "SET_VOLUME", volume: newVolume });
     }
 
     async #upVolume(amount: number) {
-      const vol = this.#volumeControl.volume;
-      const max = this.#volumeControl.max;
-      const volume = Math.min(max, vol + amount);
-      return await this.send({ type: "SET_VOLUME", volume });
+      const { max, volume } = this.#volumeControl;
+      const newVolume = Math.min(max, volume + amount);
+      return await this.send({ type: "SET_VOLUME", volume: newVolume });
     }
 
     #setTempo(tempo: number) {
@@ -259,17 +227,15 @@ import TempoControl from "./music-player/tempo-control.astro";
     }
 
     async #downTempo(amount: number) {
-      const tmp = this.#tempoControl.tempo;
-      const min = this.#tempoControl.min;
-      const tempo = Math.max(min, tmp - amount);
-      return await this.send({ type: "SET_TEMPO", tempo });
+      const { min, tempo } = this.#tempoControl;
+      const newTempo = Math.max(min, tempo - amount);
+      return await this.send({ type: "SET_TEMPO", tempo: newTempo });
     }
 
     async #upTempo(amount: number) {
-      const tmp = this.#tempoControl.tempo;
-      const max = this.#tempoControl.max;
-      const tempo = Math.min(max, tmp + amount);
-      return await this.send({ type: "SET_TEMPO", tempo });
+      const { max, tempo } = this.#tempoControl;
+      const newTempo = Math.min(max, tempo + amount);
+      return await this.send({ type: "SET_TEMPO", tempo: newTempo });
     }
 
     async #play() {
@@ -307,15 +273,13 @@ import TempoControl from "./music-player/tempo-control.astro";
     }
 
     async #seekBackward(secs: number) {
-      const time = this.#playControl.time;
-      const min = this.#playControl.min;
+      const { min, time } = this.#playControl;
       const sec = Math.max(min, time - secs);
       return await this.send({ type: "SEEK_TO", sec });
     }
 
     async #seekForward(secs: number) {
-      const time = this.#playControl.time;
-      const max = this.#playControl.max;
+      const { max, time } = this.#playControl;
       const sec = Math.min(max, time + secs);
       return await this.send({ type: "SEEK_TO", sec });
     }
@@ -326,6 +290,32 @@ import TempoControl from "./music-player/tempo-control.astro";
     }
 
     // helpers
+
+    #disableAllControls() {
+      this.#playControl.disable();
+      this.#volumeControl.disable();
+      this.#tempoControl.disable();
+      this.#shortcutKey.disable();
+    }
+
+    #enableAllControls() {
+      this.#playControl.enable();
+      this.#volumeControl.enable();
+      this.#tempoControl.enable();
+      this.#shortcutKey.enable();
+    }
+
+    #pauseUI() {
+      this.#playControl.toPaused();
+      this.#stopUpdateCurrentTime();
+    }
+
+    #loadToUI(music: Music) {
+      this.#titleDisplay.load(music);
+      this.#playControl.load(music);
+      this.#volumeControl.load(music);
+      this.#tempoControl.load(music);
+    }
 
     #startUpdateCurrentTime() {
       this.#updateDisplayRequestId = requestAnimationFrame(this.#updateCurrentTime);
