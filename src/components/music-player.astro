@@ -30,9 +30,9 @@ import TempoControl from "./music-player/tempo-control.astro";
 
   type State = "unloaded" | "loading" | "playing" | "paused";
 
-  export type EventType = GuaranteedEvent | FallibleEvent;
+  export type Command = GuaranteedCommand | FallibleCommand;
 
-  type GuaranteedEvent =
+  type GuaranteedCommand =
     | { type: "SET_VOLUME"; volume: number }
     | { type: "DOWN_VOLUME"; amount: number }
     | { type: "UP_VOLUME"; amount: number }
@@ -47,7 +47,7 @@ import TempoControl from "./music-player/tempo-control.astro";
     | { type: "SEEK_FORWARD"; secs: number }
     | { type: "TOGGLE_MUTE" };
 
-  type FallibleEvent = { type: "LOAD"; music: Music };
+  type FallibleCommand = { type: "LOAD"; music: Music };
 
   export class MusicPlayerElement extends HTMLElement {
     #musicList!: MusicListElement;
@@ -91,20 +91,20 @@ import TempoControl from "./music-player/tempo-control.astro";
       this.#shortcutKey.unregister();
     }
 
-    async send(event: GuaranteedEvent): Promise<void>;
-    async send(event: FallibleEvent): Promise<boolean>;
-    async send(event: EventType): Promise<void | boolean>;
+    async send(command: GuaranteedCommand): Promise<void>;
+    async send(command: FallibleCommand): Promise<boolean>;
+    async send(command: Command): Promise<void | boolean>;
 
-    async send(event: EventType) {
+    async send(command: Command) {
       switch (this.#state) {
         case "unloaded":
-          return await this.#unloaded(event);
+          return await this.#unloaded(command);
         case "loading":
-          return await this.#loading(event);
+          return await this.#loading(command);
         case "playing":
-          return await this.#playing(event);
+          return await this.#playing(command);
         case "paused":
-          return await this.#paused(event);
+          return await this.#paused(command);
         default:
           throw new Error(`unknown state: ${this.#state satisfies never}`);
       }
@@ -112,33 +112,33 @@ import TempoControl from "./music-player/tempo-control.astro";
 
     // dispatchers per state
 
-    async #unloaded(event: EventType) {
-      switch (event.type) {
+    async #unloaded(command: Command) {
+      switch (command.type) {
         case "LOAD":
-          return await this.#load(event.music);
+          return await this.#load(command.music);
       }
     }
 
-    async #loading(event: EventType) {
-      switch (event.type) {
+    async #loading(command: Command) {
+      switch (command.type) {
       }
     }
 
-    async #playing(event: EventType) {
-      switch (event.type) {
+    async #playing(command: Command) {
+      switch (command.type) {
         case "PAUSE":
           return await this.#pause();
         default:
-          return await this.#playingPausedShared(event);
+          return await this.#playingPausedShared(command);
       }
     }
 
-    async #paused(event: EventType) {
-      switch (event.type) {
+    async #paused(command: Command) {
+      switch (command.type) {
         case "PLAY":
           return await this.#play();
         default:
-          return await this.#playingPausedShared(event);
+          return await this.#playingPausedShared(command);
       }
     }
 
@@ -170,30 +170,30 @@ import TempoControl from "./music-player/tempo-control.astro";
       return true;
     }
 
-    async #playingPausedShared(event: EventType) {
-      switch (event.type) {
+    async #playingPausedShared(command: Command) {
+      switch (command.type) {
         case "LOAD":
-          return await this.#load(event.music);
+          return await this.#load(command.music);
         case "SET_VOLUME":
-          return this.#setVolume(event.volume);
+          return this.#setVolume(command.volume);
         case "DOWN_VOLUME":
-          return await this.#downVolume(event.amount);
+          return await this.#downVolume(command.amount);
         case "UP_VOLUME":
-          return await this.#upVolume(event.amount);
+          return await this.#upVolume(command.amount);
         case "SET_TEMPO":
-          return this.#setTempo(event.tempo);
+          return this.#setTempo(command.tempo);
         case "DOWN_TEMPO":
-          return await this.#downTempo(event.amount);
+          return await this.#downTempo(command.amount);
         case "UP_TEMPO":
-          return await this.#upTempo(event.amount);
+          return await this.#upTempo(command.amount);
         case "TOGGLE_PLAYING":
           return await this.#togglePlaying();
         case "SEEK_TO":
-          return await this.#seekTo(event.sec);
+          return await this.#seekTo(command.sec);
         case "SEEK_BACKWARD":
-          return await this.#seekBackward(event.secs);
+          return await this.#seekBackward(command.secs);
         case "SEEK_FORWARD":
-          return await this.#seekForward(event.secs);
+          return await this.#seekForward(command.secs);
         case "TOGGLE_MUTE":
           return this.#toggleMute();
       }

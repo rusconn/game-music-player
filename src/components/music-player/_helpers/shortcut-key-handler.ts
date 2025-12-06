@@ -22,8 +22,8 @@ export class ShortcutKeyHandler {
 
     if (shortcut) {
       e.preventDefault();
-      const event = Shortcut.toEvent(shortcut);
-      return await this.#musicPlayer.send(event);
+      const command = Shortcut.toCommand(shortcut);
+      return await this.#musicPlayer.send(command);
     }
   };
 }

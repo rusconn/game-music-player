@@ -1,5 +1,5 @@
 // VS Code tells error, but astro check doesn't
-import type { EventType } from "../../music-player.astro.0.mts";
+import type { Command } from "../../music-player.astro.0.mts";
 
 type Shortcut =
   | "toggle playing"
@@ -15,8 +15,8 @@ export const parse = (e: KeyboardEvent): Shortcut | undefined => {
   return keyStringShortcutMap[keyString(e)];
 };
 
-export const toEvent = (shortcut: Shortcut): EventType => {
-  return shortcutEventMap[shortcut];
+export const toCommand = (shortcut: Shortcut): Command => {
+  return shortcutCommandMap[shortcut];
 };
 
 const keyString = (e: KeyboardEvent): KeyAsString => {
@@ -39,7 +39,7 @@ const keyStringShortcutMap: Record<KeyAsString, Shortcut> = {
   "true-false-ArrowUp": "up tempo",
 };
 
-const shortcutEventMap: Record<Shortcut, EventType> = {
+const shortcutCommandMap: Record<Shortcut, Command> = {
   "toggle playing": { type: "TOGGLE_PLAYING" },
   "toggle mute": { type: "TOGGLE_MUTE" },
   "seek backward": { type: "SEEK_BACKWARD", secs: 5 },
