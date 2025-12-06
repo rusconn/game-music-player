@@ -147,11 +147,9 @@ import TempoControl from "./music-player/tempo-control.astro";
       const prevState = this.#state;
       this.#state = "loading";
 
-      this.#disableAllControls();
+      this.setAttribute("inert", "");
+
       this.#pauseUI();
-      this.#loadToUI(music);
-      this.#media.loadMetadata(music);
-      this.#loadedMusic = music;
 
       try {
         await this.#musicPlayer.load(music);
@@ -161,7 +159,11 @@ import TempoControl from "./music-player/tempo-control.astro";
         return false;
       }
 
-      this.#enableAllControls();
+      this.#loadToUI(music);
+      this.#media.loadMetadata(music);
+      this.#loadedMusic = music;
+
+      this.removeAttribute("inert");
 
       this.#state = "paused";
       return true;
@@ -282,18 +284,6 @@ import TempoControl from "./music-player/tempo-control.astro";
     }
 
     // helpers
-
-    #disableAllControls() {
-      this.#playControl.disable();
-      this.#volumeControl.disable();
-      this.#tempoControl.disable();
-    }
-
-    #enableAllControls() {
-      this.#playControl.enable();
-      this.#volumeControl.enable();
-      this.#tempoControl.enable();
-    }
 
     #pauseUI() {
       this.#playControl.toPaused();

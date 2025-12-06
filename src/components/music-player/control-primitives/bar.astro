@@ -42,10 +42,6 @@ const { id, class: class_, ...rest } = props;
     enable() {
       this.#input.removeAttribute("disabled");
     }
-
-    disable() {
-      this.#input.setAttribute("disabled", "");
-    }
   }
 
   if (!customElements.get("control-bar")) {

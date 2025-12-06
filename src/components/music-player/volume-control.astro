@@ -76,14 +76,6 @@ const { props } = Astro;
 
     load({ settings }: Music) {
       this.volume = settings.volume;
-    }
-
-    disable() {
-      this.#muteButton.disable();
-      this.#volumeBar.disable();
-    }
-
-    enable() {
       this.#muteButton.enable();
       this.#volumeBar.enable();
     }

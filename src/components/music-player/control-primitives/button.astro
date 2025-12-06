@@ -24,10 +24,6 @@ const { id, class: class_, ...rest } = props;
     enable() {
       this.#button.removeAttribute("disabled");
     }
-
-    disable() {
-      this.#button.setAttribute("disabled", "");
-    }
   }
 
   if (!customElements.get("control-button")) {

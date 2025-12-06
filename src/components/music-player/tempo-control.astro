@@ -70,14 +70,6 @@ const { props } = Astro;
 
     load({ settings }: Music) {
       this.tempo = settings.tempo;
-    }
-
-    disable() {
-      this.#tempoButton.disable();
-      this.#tempoBar.disable();
-    }
-
-    enable() {
       this.#tempoButton.enable();
       this.#tempoBar.enable();
     }

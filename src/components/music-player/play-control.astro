@@ -92,14 +92,7 @@ const { props } = Astro;
         this.#seekBar.max = duration.toString();
         this.#duraionValue = duration;
       }
-    }
 
-    disable() {
-      this.#playPause.disable();
-      this.#seekBar.disable();
-    }
-
-    enable() {
       this.#playPause.enable();
       this.#seekBar.enable();
     }
