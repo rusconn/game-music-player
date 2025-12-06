@@ -8,17 +8,17 @@
 </music-uploader>
 
 <script>
-  import { queryMusicTabulizer } from "../utils/query";
-  import type { MusicTabulizerElement } from "./music-tabulizer.astro.0.mts";
+  import { queryMusicList } from "../utils/query";
+  import type { MusicListElement } from "./music-list.astro.0.mts";
 
   class MusicUploaderElement extends HTMLElement {
-    #musicTabulizer!: MusicTabulizerElement;
+    #musicList!: MusicListElement;
 
     #musicInput!: HTMLInputElement;
     #musicUpload!: HTMLButtonElement;
 
     connectedCallback() {
-      this.#musicTabulizer = queryMusicTabulizer();
+      this.#musicList = queryMusicList();
 
       this.#musicInput = this.querySelector("input")!;
       this.#musicUpload = this.querySelector("button")!;
@@ -27,7 +27,7 @@
         const input = e.target as HTMLInputElement;
 
         if (input.files) {
-          await this.#musicTabulizer.add(input.files);
+          await this.#musicList.add(input.files);
 
           // clear selection
           input.value = "";

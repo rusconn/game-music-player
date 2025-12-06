@@ -17,7 +17,7 @@ import TempoControl from "./music-player/tempo-control.astro";
 
 <script>
   import type { Music } from "../models/music";
-  import { queryMusicTabulizer } from "../utils/query";
+  import { queryMusicList } from "../utils/query";
   import { MediaSessionController } from "./music-player/_helpers/media-session";
   import { MusicPlayer } from "./music-player/_helpers/music-player";
   import { ShortcutKeyHandler } from "./music-player/_helpers/shortcut-key-handler";
@@ -25,7 +25,7 @@ import TempoControl from "./music-player/tempo-control.astro";
   import type { PlayControlElement } from "./music-player/play-control.astro.0.mts";
   import type { VolumeControlElement } from "./music-player/volume-control.astro.0.mts";
   import type { TempoControlElement } from "./music-player/tempo-control.astro.0.mts";
-  import type { MusicTabulizerElement } from "./music-tabulizer.astro.0.mts";
+  import type { MusicListElement } from "./music-list.astro.0.mts";
 
   type State = "unloaded" | "loading" | "playing" | "paused";
 
@@ -49,7 +49,7 @@ import TempoControl from "./music-player/tempo-control.astro";
   type FallibleEvent = { type: "LOAD"; music: Music };
 
   export class MusicPlayerElement extends HTMLElement {
-    #musicTabulizer!: MusicTabulizerElement;
+    #musicList!: MusicListElement;
 
     #audioForMediaSession!: HTMLAudioElement;
     #titleDisplay!: TitleDisplayElement;
@@ -66,7 +66,7 @@ import TempoControl from "./music-player/tempo-control.astro";
     #shortcutKey!: ShortcutKeyHandler;
 
     connectedCallback() {
-      this.#musicTabulizer = queryMusicTabulizer();
+      this.#musicList = queryMusicList();
 
       this.#audioForMediaSession = this.querySelector("audio")!;
       this.#titleDisplay = this.querySelector(".title-display")!;
@@ -236,7 +236,7 @@ import TempoControl from "./music-player/tempo-control.astro";
 
     async #play() {
       await this.#musicPlayer.play();
-      this.#musicTabulizer.toPlaying(this.#loadedMusic!);
+      this.#musicList.toPlaying(this.#loadedMusic!);
       this.#playControl.toPlaying();
       this.#media.toPlaying();
       this.#startUpdateCurrentTime();
@@ -245,7 +245,7 @@ import TempoControl from "./music-player/tempo-control.astro";
 
     async #pause() {
       await this.#musicPlayer.pause();
-      this.#musicTabulizer.toPaused(this.#loadedMusic!);
+      this.#musicList.toPaused(this.#loadedMusic!);
       this.#playControl.toPaused();
       this.#media.toPaused();
       this.#stopUpdateCurrentTime();

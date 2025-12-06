@@ -1,9 +1,9 @@
 ---
-import PlayingBars from "./music-tabulizer/playing-bars.astro";
-import LoadingCircle from "./music-tabulizer/loading-circle.astro";
+import PlayingBars from "./music-list/playing-bars.astro";
+import LoadingCircle from "./music-list/loading-circle.astro";
 ---
 
-<music-tabulizer>
+<music-list>
   <ul>
     <template>
       <li>
@@ -18,17 +18,17 @@ import LoadingCircle from "./music-tabulizer/loading-circle.astro";
       </li>
     </template>
   </ul>
-</music-tabulizer>
+</music-list>
 
 <script>
   import { Music } from "../models/music";
   import { formatSec } from "../utils/format";
   import { queryMusicPlayer } from "../utils/query";
   import type { MusicPlayerElement } from "./music-player.astro.0.mts";
-  import type { PlaiyingBarsElement } from "./music-tabulizer/playing-bars.astro.0.mts";
-  import type { LoadingCircleElement } from "./music-tabulizer/loading-circle.astro.0.mts";
+  import type { PlaiyingBarsElement } from "./music-list/playing-bars.astro.0.mts";
+  import type { LoadingCircleElement } from "./music-list/loading-circle.astro.0.mts";
 
-  export class MusicTabulizerElement extends HTMLElement {
+  export class MusicListElement extends HTMLElement {
     #musicPlayer!: MusicPlayerElement;
 
     #ul!: HTMLUListElement;
@@ -117,13 +117,13 @@ import LoadingCircle from "./music-tabulizer/loading-circle.astro";
     }
   }
 
-  if (!customElements.get("music-tabulizer")) {
-    customElements.define("music-tabulizer", MusicTabulizerElement);
+  if (!customElements.get("music-list")) {
+    customElements.define("music-list", MusicListElement);
   }
 </script>
 
 <style>
-  music-tabulizer {
+  music-list {
     padding-inline: 1.375rem;
 
     ul {
