@@ -2,6 +2,6 @@ export const debounce = <T extends (...args: any[]) => unknown>(callback: T, del
   let timeoutId: number;
   return (...args: Parameters<T>) => {
     clearTimeout(timeoutId);
-    timeoutId = setTimeout(() => callback(...args), delayMs);
+    timeoutId = window.setTimeout(() => callback(...args), delayMs);
   };
 };
