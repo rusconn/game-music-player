@@ -34,7 +34,8 @@
         }
       });
 
-      this.#musicUpload.addEventListener("click", () => {
+      this.#musicUpload.addEventListener("click", (e) => {
+        e.stopPropagation();
         this.#musicInput.click();
       });
     }
