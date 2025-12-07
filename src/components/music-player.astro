@@ -1,4 +1,5 @@
 ---
+import MediaSession from "./music-player/media-session.astro";
 import TitleDisplay from "./music-player/title-display.astro";
 import PlayControl from "./music-player/play-control.astro";
 import VolumeControl from "./music-player/volume-control.astro";
@@ -6,22 +7,22 @@ import TempoControl from "./music-player/tempo-control.astro";
 ---
 
 <music-player>
-  <audio src="5-seconds-of-silence.mp3" loop></audio>
   <TitleDisplay class="title-display" />
   <PlayControl class="play-control" />
   <div class="volume-and-tempo">
     <VolumeControl class="volume-control" />
     <TempoControl class="tempo-control" />
   </div>
+  <MediaSession class="media-session" />
 </music-player>
 
 <script>
   import type { Music } from "../models/music";
   import * as MusicStorage from "../storage/music";
   import { queryMusicList } from "../utils/query";
-  import { MediaSessionController } from "./music-player/_helpers/media-session";
   import { MusicPlayer } from "./music-player/_helpers/music-player";
   import { ShortcutKeyHandler } from "./music-player/_helpers/shortcut-key-handler";
+  import type { MediaSessionElement } from "./music-player/media-session.astro.0.mts";
   import type { TitleDisplayElement } from "./music-player/title-display.astro.0.mts";
   import type { PlayControlElement } from "./music-player/play-control.astro.0.mts";
   import type { VolumeControlElement } from "./music-player/volume-control.astro.0.mts";
@@ -52,7 +53,7 @@ import TempoControl from "./music-player/tempo-control.astro";
   export class MusicPlayerElement extends HTMLElement {
     #musicList!: MusicListElement;
 
-    #audioForMediaSession!: HTMLAudioElement;
+    #mediaSession!: MediaSessionElement;
     #titleDisplay!: TitleDisplayElement;
     #playControl!: PlayControlElement;
     #volumeControl!: VolumeControlElement;
@@ -63,23 +64,21 @@ import TempoControl from "./music-player/tempo-control.astro";
     #updateDisplayRequestId = 0;
     #state: State = "unloaded";
 
-    #media!: MediaSessionController;
     #shortcutKey!: ShortcutKeyHandler;
 
     connectedCallback() {
       this.#musicList = queryMusicList();
 
-      this.#audioForMediaSession = this.querySelector("audio")!;
+      this.#mediaSession = this.querySelector(".media-session")!;
       this.#titleDisplay = this.querySelector(".title-display")!;
       this.#playControl = this.querySelector(".play-control")!;
       this.#volumeControl = this.querySelector(".volume-control")!;
       this.#tempoControl = this.querySelector(".tempo-control")!;
 
-      this.#media = new MediaSessionController(this.#audioForMediaSession);
-      this.#media.setActionHandler("play", () => {
+      this.#mediaSession.setActionHandler("play", () => {
         this.send({ type: "PLAY" });
       });
-      this.#media.setActionHandler("pause", () => {
+      this.#mediaSession.setActionHandler("pause", () => {
         this.send({ type: "PAUSE" });
       });
 
@@ -161,7 +160,7 @@ import TempoControl from "./music-player/tempo-control.astro";
       }
 
       this.#loadToUI(music);
-      this.#media.loadMetadata(music);
+      this.#mediaSession.loadMetadata(music);
       this.#loadedMusic = music;
 
       this.removeAttribute("inert");
@@ -241,7 +240,7 @@ import TempoControl from "./music-player/tempo-control.astro";
       await this.#musicPlayer.play();
       this.#musicList.toPlaying(this.#loadedMusic!);
       this.#playControl.toPlaying();
-      this.#media.toPlaying();
+      this.#mediaSession.toPlaying();
       this.#startUpdateCurrentTime();
       this.#state = "playing";
     }
@@ -250,7 +249,7 @@ import TempoControl from "./music-player/tempo-control.astro";
       await this.#musicPlayer.pause();
       this.#musicList.toPaused(this.#loadedMusic!);
       this.#playControl.toPaused();
-      this.#media.toPaused();
+      this.#mediaSession.toPaused();
       this.#stopUpdateCurrentTime();
       this.#state = "paused";
     }
