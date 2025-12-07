@@ -1,5 +1,4 @@
-// VS Code tells error, but astro check doesn't
-import type { Command } from "../../music-player.astro.0.mts";
+import type { Command } from "../../music-player";
 
 type Shortcut =
   | "toggle playing"

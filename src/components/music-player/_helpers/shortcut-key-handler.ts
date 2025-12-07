@@ -1,5 +1,4 @@
-// VS Code tells error, but astro check doesn't
-import type { MusicPlayerElement } from "../../music-player.astro.0.mts";
+import type { MusicPlayerElement } from "../../music-player";
 import * as Shortcut from "./shortcut";
 
 export class ShortcutKeyHandler {

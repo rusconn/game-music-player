@@ -14,17 +14,7 @@ const { id, class: class_, ...rest } = props;
 </control-button>
 
 <script>
-  export class ControlButtonElement extends HTMLElement {
-    #button!: HTMLButtonElement;
-
-    connectedCallback() {
-      this.#button = this.querySelector("button")!;
-    }
-
-    enable() {
-      this.#button.removeAttribute("disabled");
-    }
-  }
+  import { ControlButtonElement } from "./button";
 
   if (!customElements.get("control-button")) {
     customElements.define("control-button", ControlButtonElement);

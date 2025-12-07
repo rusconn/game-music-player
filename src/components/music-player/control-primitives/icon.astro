@@ -15,19 +15,7 @@ const { iconId, ...props } = Astro.props;
 </control-icon>
 
 <script>
-  export class ControlIconElement extends HTMLElement {
-    hide() {
-      this.setAttribute("hidden", "");
-    }
-
-    show() {
-      this.removeAttribute("hidden");
-    }
-
-    toggle() {
-      this.toggleAttribute("hidden");
-    }
-  }
+  import { ControlIconElement } from "./icon";
 
   if (!customElements.get("control-icon")) {
     customElements.define("control-icon", ControlIconElement);
