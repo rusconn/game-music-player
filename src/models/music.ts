@@ -19,7 +19,7 @@ export type Settings = {
   tempo: number;
 };
 
-export const parse = async (file: File): Promise<Music | undefined> => {
+export async function parse(file: File): Promise<Music | undefined> {
   const id = await musicId(file);
   const info = MusicStorage.get(id);
 
@@ -36,13 +36,13 @@ export const parse = async (file: File): Promise<Music | undefined> => {
       return undefined;
     }
   }
-};
+}
 
-const musicId = async (file: File) => {
+async function musicId(file: File) {
   return `music-${await digest(file)}` as const;
-};
+}
 
-const digest = async (file: File) => {
+async function digest(file: File) {
   const buffer = await file.arrayBuffer();
   return await hash("SHA-1", buffer);
-};
+}

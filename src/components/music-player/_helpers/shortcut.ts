@@ -11,17 +11,17 @@ type Shortcut =
   | "down tempo"
   | "up tempo";
 
-export const parse = (e: KeyboardEvent): Shortcut | undefined => {
+export function parse(e: KeyboardEvent): Shortcut | undefined {
   return keyStringShortcutMap[keyString(e)];
-};
+}
 
-export const toCommand = (shortcut: Shortcut): Command => {
+export function toCommand(shortcut: Shortcut): Command {
   return shortcutCommandMap[shortcut];
-};
+}
 
-const keyString = (e: KeyboardEvent): KeyAsString => {
+function keyString(e: KeyboardEvent): KeyAsString {
   return `${e.shiftKey}-${e.metaKey}-${e.key}`;
-};
+}
 
 type KeyAsString = `${Shift}-${Meta}-${string}`;
 type Shift = boolean;
