@@ -54,7 +54,7 @@ const { props } = Astro;
       });
 
       this.#seekBar.addEventListener("change", async (e) => {
-        const input = e.target as HTMLInputElement;
+        const input = e.currentTarget as ControlBarElement;
         const second = Number(input.value);
         await this.#musicPlayer.send({ type: "SEEK_TO", sec: second });
       });

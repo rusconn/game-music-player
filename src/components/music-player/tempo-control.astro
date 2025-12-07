@@ -44,7 +44,7 @@ const { props } = Astro;
       });
 
       this.#tempoBar.addEventListener("input", async (e) => {
-        const input = e.target as HTMLInputElement;
+        const input = e.currentTarget as ControlBarElement;
         const value = Number(input.value);
         await this.#musicPlayer.send({ type: "SET_TEMPO", tempo: value });
       });
