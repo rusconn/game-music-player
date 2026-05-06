@@ -180,13 +180,13 @@ export class MusicPlayerElement extends HTMLElement {
       this.#state = prevState;
       this.#dispatchEvent("music-player:fail-loading", { music });
       return;
+    } finally {
+      this.removeAttribute("inert");
     }
 
     this.#loadToUI(music);
     this.#loadToMediaSettion(music);
     this.#loadedMusic = music;
-
-    this.removeAttribute("inert");
 
     this.#state = "paused";
     this.#dispatchEvent("music-player:complete-loading", { music });
