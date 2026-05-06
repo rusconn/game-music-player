@@ -19,22 +19,20 @@ const { props } = Astro;
 </script>
 
 <style>
-  loading-circle,
-  div {
-    display: flex;
-    justify-content: center;
-    align-items: center;
+  loading-circle {
     position: absolute;
-    block-size: 100%;
-    aspect-ratio: 1;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    pointer-events: none;
 
     .loader {
-      block-size: 1rem;
-      aspect-ratio: 1;
-      border: 3px solid currentColor;
-      border-block-start: 3px solid #555;
+      inline-size: 0.875rem;
+      block-size: 0.875rem;
+      border: 0.175rem solid currentColor;
+      border-block-start-color: #555;
       border-radius: 100vmax;
-      animation: spin 1s linear infinite;
+      animation: spin 0.8s linear infinite;
 
       &.hidden {
         display: none;
