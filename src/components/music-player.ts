@@ -96,7 +96,7 @@ export class MusicPlayerElement extends HTMLElement {
       this.send({ type: "TOGGLE_MUTE" });
     });
     this.#volumeControl.addEventListener("volume-control:seek", (e) => {
-      this.send({ type: "SET_VOLUME", volume: e.detail.volume });
+      this.send({ type: "SET_VOLUME", volume: e.detail.volume / 100 });
     });
 
     this.#tempoControl.addEventListener("tempo-control:reset", () => {
@@ -223,20 +223,20 @@ export class MusicPlayerElement extends HTMLElement {
 
   #setVolume(volume: number) {
     this.#musicPlayer.volume = volume;
-    this.#volumeControl.volume = volume;
+    this.#volumeControl.volume = Math.round(volume * 100);
     this.#loadedMusic!.settings.volume = volume;
     MusicStorage.updateSettings(this.#loadedMusic!, { volume });
   }
 
   async #downVolume(amount: number) {
     const { min, volume } = this.#volumeControl;
-    const newVolume = Math.max(min, volume - amount);
+    const newVolume = Math.max(min / 100, volume / 100 - amount);
     return await this.send({ type: "SET_VOLUME", volume: newVolume });
   }
 
   async #upVolume(amount: number) {
     const { max, volume } = this.#volumeControl;
-    const newVolume = Math.min(max, volume + amount);
+    const newVolume = Math.min(max / 100, volume / 100 + amount);
     return await this.send({ type: "SET_VOLUME", volume: newVolume });
   }
 

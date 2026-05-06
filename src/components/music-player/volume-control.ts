@@ -46,30 +46,30 @@ export class VolumeControlElement extends HTMLElement {
     this.#volumeBar.addEventListener("input", (e) => {
       const input = e.currentTarget as ControlBarElement;
       const value = Number(input.value);
-      this.#dispatchEvent("volume-control:seek", { volume: value / 100 });
+      this.#dispatchEvent("volume-control:seek", { volume: value });
     });
   }
 
   get volume() {
-    return Number(this.#volumeBar.value) / 100;
+    return Number(this.#volumeBar.value);
   }
 
   set volume(volume: number) {
-    const volumeValue = Math.round(volume * 100).toString();
+    const volumeValue = volume.toString();
     this.#volumeBar.value = volumeValue;
     this.#volumeText.textContent = volumeValue;
   }
 
   get min() {
-    return Number(this.#volumeBar.min) / 100;
+    return Number(this.#volumeBar.min);
   }
 
   get max() {
-    return Number(this.#volumeBar.max) / 100;
+    return Number(this.#volumeBar.max);
   }
 
   load({ settings }: Music) {
-    this.volume = settings.volume;
+    this.volume = Math.round(settings.volume * 100);
     this.#muteButton.enable();
     this.#volumeBar.enable();
   }
