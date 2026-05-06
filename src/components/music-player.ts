@@ -72,11 +72,11 @@ export class MusicPlayerElement extends HTMLElement {
   #shortcutKey!: ShortcutKeyHandler;
 
   connectedCallback() {
-    this.#mediaSession = this.querySelector(".media-session")!;
-    this.#titleDisplay = this.querySelector(".title-display")!;
-    this.#playControl = this.querySelector(".play-control")!;
-    this.#volumeControl = this.querySelector(".volume-control")!;
-    this.#tempoControl = this.querySelector(".tempo-control")!;
+    this.#mediaSession = this.querySelector("media-session")!;
+    this.#titleDisplay = this.querySelector("title-display")!;
+    this.#playControl = this.querySelector("play-control")!;
+    this.#volumeControl = this.querySelector("volume-control")!;
+    this.#tempoControl = this.querySelector("tempo-control")!;
 
     this.#mediaSession.setActionHandler("play", () => {
       this.send({ type: "PLAY" });

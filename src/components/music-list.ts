@@ -73,25 +73,25 @@ export class MusicListElement extends HTMLElement {
 
     if (this.#lastPlayedMusic) {
       this.#queryRow(this.#lastPlayedMusic)
-        ?.querySelector<PlaiyingBarsElement>(".playing-bars")
+        ?.querySelector<PlaiyingBarsElement>("playing-bars")
         ?.hide();
     }
 
     this.#queryRow(music) //
-      ?.querySelector<LoadingCircleElement>(".loading-circle")
+      ?.querySelector<LoadingCircleElement>("loading-circle")
       ?.show();
   }
 
   completeLoading(music: Music.Music) {
     this.#queryRow(music) //
-      ?.querySelector<LoadingCircleElement>(".loading-circle")
+      ?.querySelector<LoadingCircleElement>("loading-circle")
       ?.hide();
     this.#ul.removeAttribute("inert");
   }
 
   failLoading(music: Music.Music) {
     this.#queryRow(music) //
-      ?.querySelector<LoadingCircleElement>(".loading-circle")
+      ?.querySelector<LoadingCircleElement>("loading-circle")
       ?.hide();
     alert("Sorry, failed to load the music file.\nTry another browser.");
     this.#ul.removeAttribute("inert");
@@ -99,14 +99,14 @@ export class MusicListElement extends HTMLElement {
 
   toPlaying(music: Music.Music) {
     this.#queryRow(music) //
-      ?.querySelector<PlaiyingBarsElement>(".playing-bars")
+      ?.querySelector<PlaiyingBarsElement>("playing-bars")
       ?.toPlaying();
     this.#lastPlayedMusic = music;
   }
 
   toPaused(music: Music.Music) {
     this.#queryRow(music) //
-      ?.querySelector<PlaiyingBarsElement>(".playing-bars")
+      ?.querySelector<PlaiyingBarsElement>("playing-bars")
       ?.toPaused();
   }
 
