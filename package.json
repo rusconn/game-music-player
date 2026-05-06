@@ -24,11 +24,5 @@
     "prettier-plugin-astro": "^0.14.1",
     "typescript": "^5.6.3",
     "vite-plugin-pwa": "^1.0.1"
-  },
-  "pnpm": {
-    "onlyBuiltDependencies": [
-      "esbuild",
-      "sharp"
-    ]
   }
 }
