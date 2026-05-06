@@ -5,25 +5,37 @@ export class MediaSessionElement extends HTMLElement {
     this.#audio = this.querySelector("audio")!;
   }
 
+  get #mediaSession(): MediaSession | undefined {
+    return navigator.mediaSession;
+  }
+
   setActionHandler(action: MediaSessionAction, handler: MediaSessionActionHandler) {
-    navigator.mediaSession.setActionHandler(action, handler);
+    if (this.#mediaSession) {
+      this.#mediaSession.setActionHandler(action, handler);
+    }
   }
 
   loadMetadata(metadata: MediaMetadataInit) {
-    navigator.mediaSession.metadata = new MediaMetadata(metadata);
-    navigator.mediaSession.setPositionState({
-      position: 0,
-      duration: 0,
-    });
+    if (this.#mediaSession && "MediaMetadata" in window) {
+      this.#mediaSession.metadata = new MediaMetadata(metadata);
+      this.#mediaSession.setPositionState({
+        position: 0,
+        duration: 0,
+      });
+    }
   }
 
   toPlaying() {
-    this.#audio.play();
-    navigator.mediaSession.playbackState = "playing";
+    this.#audio.play().catch(console.error);
+    if (this.#mediaSession) {
+      this.#mediaSession.playbackState = "playing";
+    }
   }
 
   toPaused() {
     this.#audio.pause();
-    navigator.mediaSession.playbackState = "paused";
+    if (this.#mediaSession) {
+      this.#mediaSession.playbackState = "paused";
+    }
   }
 }
