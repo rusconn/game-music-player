@@ -225,7 +225,7 @@ export class MusicPlayerElement extends HTMLElement {
     this.#musicPlayer.volume = volume;
     this.#volumeControl.volume = Math.round(volume * 100);
     this.#loadedMusic!.settings.volume = volume;
-    MusicStorage.updateSettings(this.#loadedMusic!, { volume });
+    MusicStorage.updateSettings(this.#loadedMusic!);
   }
 
   async #downVolume(amount: number) {
@@ -244,7 +244,7 @@ export class MusicPlayerElement extends HTMLElement {
     this.#musicPlayer.tempo = tempo;
     this.#tempoControl.tempo = tempo;
     this.#loadedMusic!.settings.tempo = tempo;
-    MusicStorage.updateSettings(this.#loadedMusic!, { tempo });
+    MusicStorage.updateSettings(this.#loadedMusic!);
   }
 
   async #downTempo(amount: number) {

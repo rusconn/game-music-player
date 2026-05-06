@@ -1,18 +1,22 @@
 import { debounce } from "../lib/debounce";
-import type { Music, MusicId, Settings } from "../models/music";
+import type { Metadata, Music, MusicId } from "../models/music";
 
 type MusicInfo = Pick<Music, "metadata" | "settings">;
 
-export const updateSettings = debounce(updateSettingsInternal, 200);
+export function updateSettings({ id, metadata, settings }: Music) {
+  const settingsSnapshot = { ...settings };
+  scheduledSettingsUpdates.set(id, { metadata, settings: settingsSnapshot });
+  scheduleSettingsUpdate();
+}
 
-function updateSettingsInternal(music: Music, settings: Partial<Settings>) {
-  const saved = get(music.id);
-  if (saved) {
-    set(music.id, {
-      ...saved,
-      settings: { ...saved.settings, ...settings },
-    });
+const scheduledSettingsUpdates = new Map<MusicId, MusicInfo>();
+const scheduleSettingsUpdate = debounce(doSettingsUpdates, 200);
+
+function doSettingsUpdates() {
+  for (const [id, info] of scheduledSettingsUpdates) {
+    set(id, info);
   }
+  scheduledSettingsUpdates.clear();
 }
 
 export function get(id: MusicId) {
