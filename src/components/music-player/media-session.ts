@@ -1,5 +1,3 @@
-import type { Music } from "../../models/music";
-
 export class MediaSessionElement extends HTMLElement {
   #audio!: HTMLAudioElement;
 
@@ -11,12 +9,8 @@ export class MediaSessionElement extends HTMLElement {
     navigator.mediaSession.setActionHandler(action, handler);
   }
 
-  loadMetadata({ file, metadata }: Music) {
-    navigator.mediaSession.metadata = new MediaMetadata({
-      title: metadata.common.title ?? file.name,
-      artist: metadata.common.artist,
-      album: metadata.common.album,
-    });
+  loadMetadata(metadata: MediaMetadataInit) {
+    navigator.mediaSession.metadata = new MediaMetadata(metadata);
     navigator.mediaSession.setPositionState({
       position: 0,
       duration: 0,

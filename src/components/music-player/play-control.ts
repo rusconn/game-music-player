@@ -1,4 +1,3 @@
-import type { Music } from "../../models/music";
 import { formatSec } from "../../utils/format";
 import type { TypedEvent } from "../../utils/types";
 import type { ControlBarElement } from "./control-primitives/bar";
@@ -33,7 +32,7 @@ export class PlayControlElement extends HTMLElement {
   #seekBar!: ControlBarElement;
   #currentTime!: HTMLSpanElement;
 
-  #duraionValue: Music["metadata"]["format"]["duration"];
+  #duraionValue = 0;
   #isUserSeeking = false;
 
   connectedCallback() {
@@ -78,15 +77,10 @@ export class PlayControlElement extends HTMLElement {
     return Number(this.#seekBar.max);
   }
 
-  load(music: Music) {
+  setup(durationSecs: number) {
     this.time = 0;
-
-    const { duration } = music.metadata.format;
-    if (duration != null) {
-      this.#seekBar.max = duration.toString();
-      this.#duraionValue = duration;
-    }
-
+    this.#seekBar.max = durationSecs.toString();
+    this.#duraionValue = durationSecs;
     this.#playPause.enable();
     this.#seekBar.enable();
   }

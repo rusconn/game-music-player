@@ -1,4 +1,3 @@
-import type { Music } from "../../models/music";
 import type { TypedEvent } from "../../utils/types";
 import type { ControlBarElement } from "./control-primitives/bar";
 import type { ControlButtonElement } from "./control-primitives/button";
@@ -68,8 +67,8 @@ export class VolumeControlElement extends HTMLElement {
     return Number(this.#volumeBar.max);
   }
 
-  load({ settings }: Music) {
-    this.volume = Math.round(settings.volume * 100);
+  setup(volume: number) {
+    this.volume = volume;
     this.#muteButton.enable();
     this.#volumeBar.enable();
   }

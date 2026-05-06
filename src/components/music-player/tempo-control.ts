@@ -1,4 +1,3 @@
-import type { Music } from "../../models/music";
 import type { TypedEvent } from "../../utils/types";
 import type { ControlBarElement } from "./control-primitives/bar";
 import type { ControlButtonElement } from "./control-primitives/button";
@@ -63,8 +62,8 @@ export class TempoControlElement extends HTMLElement {
     return Number(this.#tempoBar.max);
   }
 
-  load({ settings }: Music) {
-    this.tempo = settings.tempo;
+  setup(tempo: number) {
+    this.tempo = tempo;
     this.#tempoButton.enable();
     this.#tempoBar.enable();
   }

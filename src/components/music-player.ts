@@ -183,7 +183,7 @@ export class MusicPlayerElement extends HTMLElement {
     }
 
     this.#loadToUI(music);
-    this.#mediaSession.loadMetadata(music);
+    this.#loadToMediaSettion(music);
     this.#loadedMusic = music;
 
     this.removeAttribute("inert");
@@ -316,10 +316,24 @@ export class MusicPlayerElement extends HTMLElement {
   }
 
   #loadToUI(music: Music) {
-    this.#titleDisplay.load(music);
-    this.#playControl.load(music);
-    this.#volumeControl.load(music);
-    this.#tempoControl.load(music);
+    const { file, metadata, settings } = music;
+    const { common, format } = metadata;
+
+    this.#titleDisplay.setup(common.title?.trim() || file.name);
+    this.#playControl.setup(format.duration ?? 0);
+    this.#volumeControl.setup(Math.round(settings.volume * 100));
+    this.#tempoControl.setup(settings.tempo);
+  }
+
+  #loadToMediaSettion(music: Music) {
+    const { file, metadata } = music;
+    const { artist, album, title } = metadata.common;
+
+    this.#mediaSession.loadMetadata({
+      title: title?.trim() || file.name,
+      artist,
+      album,
+    });
   }
 
   #startUpdateCurrentTime() {
