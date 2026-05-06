@@ -1,6 +1,6 @@
 import type { Music } from "../models/music";
 import * as MusicStorage from "../storage/music";
-import { queryMusicList } from "../utils/query";
+import type { TypedEvent } from "../utils/types";
 import { MusicPlayer } from "./music-player/_helpers/music-player";
 import { ShortcutKeyHandler } from "./music-player/_helpers/shortcut-key-handler";
 import type { MediaSessionElement } from "./music-player/media-session";
@@ -8,13 +8,41 @@ import type { TitleDisplayElement } from "./music-player/title-display";
 import type { PlayControlElement } from "./music-player/play-control";
 import type { VolumeControlElement } from "./music-player/volume-control";
 import type { TempoControlElement } from "./music-player/tempo-control";
-import type { MusicListElement } from "./music-list";
+
+declare global {
+  interface HTMLElementTagNameMap {
+    "music-player": MusicPlayerElement;
+  }
+
+  interface GlobalEventHandlersEventMap {
+    "music-player:play": MusicPlayerEvent<PlayDetail>;
+    "music-player:pause": MusicPlayerEvent<PauseDetail>;
+    "music-player:start-loading": MusicPlayerEvent<StartLoadingDetail>;
+    "music-player:complete-loading": MusicPlayerEvent<CompleteLoadingDetail>;
+    "music-player:fail-loading": MusicPlayerEvent<FailLoadingDetail>;
+  }
+}
+
+type MusicPlayerEventMap = {
+  "music-player:play": CustomEvent<PlayDetail>;
+  "music-player:pause": CustomEvent<PauseDetail>;
+  "music-player:start-loading": CustomEvent<StartLoadingDetail>;
+  "music-player:complete-loading": CustomEvent<CompleteLoadingDetail>;
+  "music-player:fail-loading": CustomEvent<FailLoadingDetail>;
+};
+
+type MusicPlayerEvent<Detail = unknown> = TypedEvent<MusicPlayerElement, Detail>;
+
+type PlayDetail = { music: Music };
+type PauseDetail = { music: Music };
+type StartLoadingDetail = { music: Music };
+type CompleteLoadingDetail = { music: Music };
+type FailLoadingDetail = { music: Music };
 
 type State = "unloaded" | "loading" | "playing" | "paused";
 
-export type Command = GuaranteedCommand | FallibleCommand;
-
-type GuaranteedCommand =
+export type Command =
+  | { type: "LOAD"; music: Music }
   | { type: "SET_VOLUME"; volume: number }
   | { type: "DOWN_VOLUME"; amount: number }
   | { type: "UP_VOLUME"; amount: number }
@@ -29,11 +57,7 @@ type GuaranteedCommand =
   | { type: "SEEK_FORWARD"; secs: number }
   | { type: "TOGGLE_MUTE" };
 
-type FallibleCommand = { type: "LOAD"; music: Music };
-
 export class MusicPlayerElement extends HTMLElement {
-  #musicList!: MusicListElement;
-
   #mediaSession!: MediaSessionElement;
   #titleDisplay!: TitleDisplayElement;
   #playControl!: PlayControlElement;
@@ -48,8 +72,6 @@ export class MusicPlayerElement extends HTMLElement {
   #shortcutKey!: ShortcutKeyHandler;
 
   connectedCallback() {
-    this.#musicList = queryMusicList();
-
     this.#mediaSession = this.querySelector(".media-session")!;
     this.#titleDisplay = this.querySelector(".title-display")!;
     this.#playControl = this.querySelector(".play-control")!;
@@ -63,6 +85,27 @@ export class MusicPlayerElement extends HTMLElement {
       this.send({ type: "PAUSE" });
     });
 
+    this.#playControl.addEventListener("play-control:toggle", () => {
+      this.send({ type: "TOGGLE_PLAYING" });
+    });
+    this.#playControl.addEventListener("play-control:seek", (e) => {
+      this.send({ type: "SEEK_TO", sec: e.detail.second });
+    });
+
+    this.#volumeControl.addEventListener("volume-control:toggle", () => {
+      this.send({ type: "TOGGLE_MUTE" });
+    });
+    this.#volumeControl.addEventListener("volume-control:seek", (e) => {
+      this.send({ type: "SET_VOLUME", volume: e.detail.volume });
+    });
+
+    this.#tempoControl.addEventListener("tempo-control:reset", () => {
+      this.send({ type: "SET_TEMPO", tempo: 1.0 });
+    });
+    this.#tempoControl.addEventListener("tempo-control:seek", (e) => {
+      this.send({ type: "SET_TEMPO", tempo: e.detail.tempo });
+    });
+
     this.#shortcutKey = new ShortcutKeyHandler(this);
     this.#shortcutKey.register();
   }
@@ -71,11 +114,7 @@ export class MusicPlayerElement extends HTMLElement {
     this.#shortcutKey.unregister();
   }
 
-  async send(command: GuaranteedCommand): Promise<void>;
-  async send(command: FallibleCommand): Promise<boolean>;
-  async send(command: Command): Promise<void | boolean>;
-
-  async send(command: Command) {
+  async send(command: Command): Promise<void> {
     switch (this.#state) {
       case "unloaded":
         return await this.#unloaded(command);
@@ -125,6 +164,8 @@ export class MusicPlayerElement extends HTMLElement {
   // dispatchees
 
   async #load(music: Music) {
+    this.#dispatchEvent("music-player:start-loading", { music });
+
     const prevState = this.#state;
     this.#state = "loading";
 
@@ -137,7 +178,8 @@ export class MusicPlayerElement extends HTMLElement {
     } catch (e) {
       console.error(e);
       this.#state = prevState;
-      return false;
+      this.#dispatchEvent("music-player:fail-loading", { music });
+      return;
     }
 
     this.#loadToUI(music);
@@ -147,7 +189,7 @@ export class MusicPlayerElement extends HTMLElement {
     this.removeAttribute("inert");
 
     this.#state = "paused";
-    return true;
+    this.#dispatchEvent("music-player:complete-loading", { music });
   }
 
   async #playingPausedShared(command: Command) {
@@ -219,7 +261,7 @@ export class MusicPlayerElement extends HTMLElement {
 
   async #play() {
     await this.#musicPlayer.play();
-    this.#musicList.toPlaying(this.#loadedMusic!);
+    this.#dispatchEvent("music-player:play", { music: this.#loadedMusic! });
     this.#playControl.toPlaying();
     this.#mediaSession.toPlaying();
     this.#startUpdateCurrentTime();
@@ -228,7 +270,7 @@ export class MusicPlayerElement extends HTMLElement {
 
   async #pause() {
     await this.#musicPlayer.pause();
-    this.#musicList.toPaused(this.#loadedMusic!);
+    this.#dispatchEvent("music-player:pause", { music: this.#loadedMusic! });
     this.#playControl.toPaused();
     this.#mediaSession.toPaused();
     this.#stopUpdateCurrentTime();
@@ -292,4 +334,16 @@ export class MusicPlayerElement extends HTMLElement {
     this.#playControl.time = this.#musicPlayer.currentTime ?? 0;
     this.#updateDisplayRequestId = requestAnimationFrame(this.#updateCurrentTime);
   };
+
+  #dispatchEvent<Type extends keyof MusicPlayerEventMap>(
+    type: Type,
+    detail: MusicPlayerEventMap[Type] extends CustomEvent<infer Detail> ? Detail : never,
+  ) {
+    this.dispatchEvent(
+      new CustomEvent(type, {
+        detail,
+        bubbles: false,
+      }),
+    );
+  }
 }

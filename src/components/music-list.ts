@@ -1,21 +1,34 @@
 import * as Music from "../models/music";
 import { formatSec } from "../utils/format";
-import { queryMusicPlayer } from "../utils/query";
-import type { MusicPlayerElement } from "./music-player";
+import type { TypedEvent } from "../utils/types";
 import type { PlaiyingBarsElement } from "./music-list/playing-bars";
 import type { LoadingCircleElement } from "./music-list/loading-circle";
 
-export class MusicListElement extends HTMLElement {
-  #musicPlayer!: MusicPlayerElement;
+declare global {
+  interface HTMLElementTagNameMap {
+    "music-list": MusicListElement;
+  }
 
+  interface GlobalEventHandlersEventMap {
+    "music-list:select": MusicListEvent<SelectDetail>;
+  }
+}
+
+type MusicListEventMap = {
+  "music-list:select": CustomEvent<SelectDetail>;
+};
+
+type MusicListEvent<Detail = unknown> = TypedEvent<MusicListElement, Detail>;
+
+type SelectDetail = { music: Music.Music };
+
+export class MusicListElement extends HTMLElement {
   #ul!: HTMLUListElement;
   #liTemplate!: HTMLTemplateElement;
 
-  #playingMusic: Music.Music | undefined;
+  #lastPlayedMusic: Music.Music | undefined;
 
   connectedCallback() {
-    this.#musicPlayer = queryMusicPlayer();
-
     this.#ul = this.querySelector("ul")!;
     this.#liTemplate = this.querySelector("template")!;
   }
@@ -35,10 +48,12 @@ export class MusicListElement extends HTMLElement {
 
     const liFragment = this.#liTemplate.content.cloneNode(true) as DocumentFragment;
     const li = liFragment.firstElementChild!;
-    const [indicator, button] = li.children;
+    const [_, button] = li.children;
     const [title, duration] = button.children;
 
-    button.addEventListener("click", this.#createSelectHandler(indicator, music));
+    button.addEventListener("click", () => {
+      this.#dispatchEvent("music-list:select", { music });
+    });
 
     const { format, common } = music.metadata;
 
@@ -53,38 +68,40 @@ export class MusicListElement extends HTMLElement {
     return liFragment;
   }
 
-  #createSelectHandler(indicator: Element, music: Music.Music) {
-    return async () => {
-      this.#ul.setAttribute("inert", "");
+  startLoading(music: Music.Music) {
+    this.#ul.setAttribute("inert", "");
 
-      if (this.#playingMusic) {
-        this.#queryRow(this.#playingMusic)
-          ?.querySelector<PlaiyingBarsElement>(".playing-bars")
-          ?.hide();
-      }
+    if (this.#lastPlayedMusic) {
+      this.#queryRow(this.#lastPlayedMusic)
+        ?.querySelector<PlaiyingBarsElement>(".playing-bars")
+        ?.hide();
+    }
 
-      const loadingCircle = indicator.querySelector<LoadingCircleElement>(".loading-circle")!;
+    this.#queryRow(music) //
+      ?.querySelector<LoadingCircleElement>(".loading-circle")
+      ?.show();
+  }
 
-      loadingCircle.show();
-      const loaded = await this.#musicPlayer.send({ type: "LOAD", music });
-      loadingCircle.hide();
+  completeLoading(music: Music.Music) {
+    this.#queryRow(music) //
+      ?.querySelector<LoadingCircleElement>(".loading-circle")
+      ?.hide();
+    this.#ul.removeAttribute("inert");
+  }
 
-      if (loaded) {
-        await this.#musicPlayer.send({ type: "PLAY" });
-        this.#playingMusic = music;
-      } else {
-        // TODO: avoid blocking
-        alert("Sorry, failed to load the music file.\nTry another browser.");
-      }
-
-      this.#ul.removeAttribute("inert");
-    };
+  failLoading(music: Music.Music) {
+    this.#queryRow(music) //
+      ?.querySelector<LoadingCircleElement>(".loading-circle")
+      ?.hide();
+    alert("Sorry, failed to load the music file.\nTry another browser.");
+    this.#ul.removeAttribute("inert");
   }
 
   toPlaying(music: Music.Music) {
     this.#queryRow(music) //
       ?.querySelector<PlaiyingBarsElement>(".playing-bars")
       ?.toPlaying();
+    this.#lastPlayedMusic = music;
   }
 
   toPaused(music: Music.Music) {
@@ -95,5 +112,17 @@ export class MusicListElement extends HTMLElement {
 
   #queryRow(music: Music.Music) {
     return this.querySelector(`li[data-id=${music.id}]`);
+  }
+
+  #dispatchEvent<Type extends keyof MusicListEventMap>(
+    type: Type,
+    detail: MusicListEventMap[Type] extends CustomEvent<infer Detail> ? Detail : never,
+  ) {
+    this.dispatchEvent(
+      new CustomEvent(type, {
+        detail,
+        bubbles: false,
+      }),
+    );
   }
 }

@@ -1,13 +1,31 @@
 import type { Music } from "../../models/music";
-import { queryMusicPlayer } from "../../utils/query";
-import type { MusicPlayerElement } from "../music-player";
+import type { TypedEvent } from "../../utils/types";
 import type { ControlBarElement } from "./control-primitives/bar";
 import type { ControlButtonElement } from "./control-primitives/button";
 import type { ControlIconElement } from "./control-primitives/icon";
 
-export class VolumeControlElement extends HTMLElement {
-  #musicPlayer!: MusicPlayerElement;
+declare global {
+  interface HTMLElementTagNameMap {
+    "volume-control": VolumeControlElement;
+  }
 
+  interface GlobalEventHandlersEventMap {
+    "volume-control:toggle": VolumeControlEvent<ToggleDetail>;
+    "volume-control:seek": VolumeControlEvent<SeekDetail>;
+  }
+}
+
+type VolumeControlEventMap = {
+  "volume-control:toggle": CustomEvent<ToggleDetail>;
+  "volume-control:seek": CustomEvent<SeekDetail>;
+};
+
+type VolumeControlEvent<Detail = unknown> = TypedEvent<VolumeControlElement, Detail>;
+
+type ToggleDetail = {};
+type SeekDetail = { volume: number };
+
+export class VolumeControlElement extends HTMLElement {
   #muteButton!: ControlButtonElement;
   #volumeIcon!: ControlIconElement;
   #mutedIcon!: ControlIconElement;
@@ -15,22 +33,20 @@ export class VolumeControlElement extends HTMLElement {
   #volumeText!: HTMLSpanElement;
 
   connectedCallback() {
-    this.#musicPlayer = queryMusicPlayer();
-
     this.#muteButton = this.querySelector(".mute-button")!;
     this.#volumeIcon = this.#muteButton.querySelector(".volume-icon")!;
     this.#mutedIcon = this.#muteButton.querySelector(".muted-icon")!;
     this.#volumeBar = this.querySelector(".volume-bar")!;
     this.#volumeText = this.querySelector(".volume-text")!;
 
-    this.#muteButton.addEventListener("click", async () => {
-      await this.#musicPlayer.send({ type: "TOGGLE_MUTE" });
+    this.#muteButton.addEventListener("click", () => {
+      this.#dispatchEvent("volume-control:toggle", {});
     });
 
-    this.#volumeBar.addEventListener("input", async (e) => {
+    this.#volumeBar.addEventListener("input", (e) => {
       const input = e.currentTarget as ControlBarElement;
       const value = Number(input.value);
-      await this.#musicPlayer.send({ type: "SET_VOLUME", volume: value / 100 });
+      this.#dispatchEvent("volume-control:seek", { volume: value / 100 });
     });
   }
 
@@ -61,5 +77,17 @@ export class VolumeControlElement extends HTMLElement {
   toggleIcon() {
     this.#volumeIcon.toggle();
     this.#mutedIcon.toggle();
+  }
+
+  #dispatchEvent<Type extends keyof VolumeControlEventMap>(
+    type: Type,
+    detail: VolumeControlEventMap[Type] extends CustomEvent<infer Detail> ? Detail : never,
+  ) {
+    this.dispatchEvent(
+      new CustomEvent(type, {
+        detail,
+        bubbles: false,
+      }),
+    );
   }
 }
