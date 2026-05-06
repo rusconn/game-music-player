@@ -21,60 +21,64 @@ export class MusicListElement extends HTMLElement {
   }
 
   async add(files: FileList) {
-    const willMaybeLiFragments = [...files].map(async (file) => {
-      const music = await Music.parse(file);
-
-      // TODO: make some announcement
-      if (!music) return;
-
-      const liFragment = this.#liTemplate.content.cloneNode(true) as DocumentFragment;
-      const li = liFragment.firstElementChild!;
-      const [indicator, button] = li.children;
-      const [title, duration] = button.children;
-
-      button.addEventListener("click", async () => {
-        this.#ul.setAttribute("inert", "");
-
-        if (this.#playingMusic) {
-          this.#queryRow(this.#playingMusic)
-            ?.querySelector<PlaiyingBarsElement>(".playing-bars")
-            ?.hide();
-        }
-
-        const loadingCircle = indicator.querySelector<LoadingCircleElement>(".loading-circle")!;
-
-        loadingCircle.show();
-        const loaded = await this.#musicPlayer.send({ type: "LOAD", music });
-        loadingCircle.hide();
-
-        if (loaded) {
-          await this.#musicPlayer.send({ type: "PLAY" });
-          this.#playingMusic = music;
-        } else {
-          // TODO: avoid blocking
-          alert("Sorry, failed to load the music file.\nTry another browser.");
-        }
-
-        this.#ul.removeAttribute("inert");
-      });
-
-      const { format, common } = music.metadata;
-
-      title.textContent = common.title?.trim() || music.file.name;
-
-      if (format.duration) {
-        duration.textContent = formatSec(format.duration);
-      }
-
-      liFragment.firstElementChild!.setAttribute("data-id", music.id);
-
-      return liFragment;
-    });
-
+    const willMaybeLiFragments = [...files].map(this.#toWillMaybeLiFragment.bind(this));
     const maybeLiFragments = await Promise.all(willMaybeLiFragments);
     const liFragments = maybeLiFragments.filter((mlif) => !!mlif);
-
     this.#ul.prepend(...liFragments);
+  }
+
+  async #toWillMaybeLiFragment(file: File) {
+    const music = await Music.parse(file);
+
+    // TODO: make some announcement
+    if (!music) return;
+
+    const liFragment = this.#liTemplate.content.cloneNode(true) as DocumentFragment;
+    const li = liFragment.firstElementChild!;
+    const [indicator, button] = li.children;
+    const [title, duration] = button.children;
+
+    button.addEventListener("click", this.#createSelectHandler(indicator, music));
+
+    const { format, common } = music.metadata;
+
+    title.textContent = common.title?.trim() || music.file.name;
+
+    if (format.duration) {
+      duration.textContent = formatSec(format.duration);
+    }
+
+    liFragment.firstElementChild!.setAttribute("data-id", music.id);
+
+    return liFragment;
+  }
+
+  #createSelectHandler(indicator: Element, music: Music.Music) {
+    return async () => {
+      this.#ul.setAttribute("inert", "");
+
+      if (this.#playingMusic) {
+        this.#queryRow(this.#playingMusic)
+          ?.querySelector<PlaiyingBarsElement>(".playing-bars")
+          ?.hide();
+      }
+
+      const loadingCircle = indicator.querySelector<LoadingCircleElement>(".loading-circle")!;
+
+      loadingCircle.show();
+      const loaded = await this.#musicPlayer.send({ type: "LOAD", music });
+      loadingCircle.hide();
+
+      if (loaded) {
+        await this.#musicPlayer.send({ type: "PLAY" });
+        this.#playingMusic = music;
+      } else {
+        // TODO: avoid blocking
+        alert("Sorry, failed to load the music file.\nTry another browser.");
+      }
+
+      this.#ul.removeAttribute("inert");
+    };
   }
 
   toPlaying(music: Music.Music) {
