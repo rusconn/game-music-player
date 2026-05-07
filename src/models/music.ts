@@ -27,7 +27,10 @@ export async function parse(file: File): Promise<Music | undefined> {
     return { id, file, ...info };
   } else {
     try {
-      const metadata = await parseBlob(file, { skipCovers: true });
+      const metadata = await parseBlob(file, {
+        skipCovers: true,
+        duration: true,
+      });
       const settings = { volume: 1, tempo: 1 };
       MusicStorage.set(id, { metadata, settings });
       return { id, file, metadata, settings };

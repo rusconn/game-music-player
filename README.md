@@ -15,10 +15,6 @@ This player is primarily designed for PC game music. It addresses the issue wher
   - Volume level
   - Playback tempo
 
-## Compatibility
-
-This player does not support Safari.
-
 ## Known issues
 
 - Music playback starts slowly
