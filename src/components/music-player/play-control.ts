@@ -77,22 +77,35 @@ export class PlayControlElement extends HTMLElement {
     return Number(this.#seekBar.max);
   }
 
+  set state(state: "playing" | "paused") {
+    switch (state) {
+      case "playing":
+        this.#toPlaying();
+        break;
+      case "paused":
+        this.#toPaused();
+        break;
+      default:
+        state satisfies never;
+    }
+  }
+
+  #toPlaying() {
+    this.#playIcon.hide();
+    this.#pauseIcon.show();
+  }
+
+  #toPaused() {
+    this.#playIcon.show();
+    this.#pauseIcon.hide();
+  }
+
   setup(durationSecs: number) {
     this.time = 0;
     this.#seekBar.max = durationSecs.toString();
     this.#duraionValue = durationSecs;
     this.#playPause.enable();
     this.#seekBar.enable();
-  }
-
-  toPlaying() {
-    this.#playIcon.hide();
-    this.#pauseIcon.show();
-  }
-
-  toPaused() {
-    this.#playIcon.show();
-    this.#pauseIcon.hide();
   }
 
   #startSeek = () => {

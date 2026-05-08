@@ -37,7 +37,7 @@ import MusicList from "../components/music-list.astro";
   });
   player.addEventListener("music-player:complete-loading", async (e) => {
     list.completeLoading(e.detail.music);
-    await player.send({ type: "PLAY" });
+    await player.play();
   });
   player.addEventListener("music-player:fail-loading", (e) => {
     list.failLoading(e.detail.music);
@@ -48,7 +48,7 @@ import MusicList from "../components/music-list.astro";
   });
 
   list.addEventListener("music-list:select", async (e) => {
-    await player.send({ type: "LOAD", music: e.detail.music });
+    await player.load(e.detail.music);
   });
 </script>
 

@@ -1,13 +1,17 @@
-import type { Music } from "../models/music";
+import { AudioPlayer } from "../lib/audio-player";
+import * as Music from "../models/music";
 import * as MusicStorage from "../storage/music";
 import type { TypedEvent } from "../utils/types";
-import { MusicPlayer } from "./music-player/_helpers/music-player";
-import { ShortcutKeyHandler } from "./music-player/_helpers/shortcut-key-handler";
+import {
+  ShortcutKeyHandler,
+  type ShortcutKeyHandlerEventMap,
+} from "./music-player/_helpers/shortcut-key-handler";
 import type { MediaSessionElement } from "./music-player/media-session";
 import type { TitleDisplayElement } from "./music-player/title-display";
 import type { PlayControlElement } from "./music-player/play-control";
 import type { VolumeControlElement } from "./music-player/volume-control";
 import type { TempoControlElement } from "./music-player/tempo-control";
+import { clamp } from "../lib/math";
 
 declare global {
   interface HTMLElementTagNameMap {
@@ -33,29 +37,11 @@ type MusicPlayerEventMap = {
 
 type MusicPlayerEvent<Detail = unknown> = TypedEvent<MusicPlayerElement, Detail>;
 
-type PlayDetail = { music: Music };
-type PauseDetail = { music: Music };
-type StartLoadingDetail = { music: Music };
-type CompleteLoadingDetail = { music: Music };
-type FailLoadingDetail = { music: Music };
-
-type State = "unloaded" | "loading" | "playing" | "paused";
-
-export type Command =
-  | { type: "LOAD"; music: Music }
-  | { type: "SET_VOLUME"; volume: number }
-  | { type: "DOWN_VOLUME"; amount: number }
-  | { type: "UP_VOLUME"; amount: number }
-  | { type: "SET_TEMPO"; tempo: number }
-  | { type: "DOWN_TEMPO"; amount: number }
-  | { type: "UP_TEMPO"; amount: number }
-  | { type: "PLAY" }
-  | { type: "PAUSE" }
-  | { type: "TOGGLE_PLAYING" }
-  | { type: "SEEK_TO"; sec: number }
-  | { type: "SEEK_BACKWARD"; secs: number }
-  | { type: "SEEK_FORWARD"; secs: number }
-  | { type: "TOGGLE_MUTE" };
+type PlayDetail = { music: Music.Music };
+type PauseDetail = { music: Music.Music };
+type StartLoadingDetail = { music: Music.Music };
+type CompleteLoadingDetail = { music: Music.Music };
+type FailLoadingDetail = { music: Music.Music };
 
 export class MusicPlayerElement extends HTMLElement {
   #mediaSession!: MediaSessionElement;
@@ -63,259 +49,302 @@ export class MusicPlayerElement extends HTMLElement {
   #playControl!: PlayControlElement;
   #volumeControl!: VolumeControlElement;
   #tempoControl!: TempoControlElement;
-
-  #musicPlayer = new MusicPlayer();
-  #loadedMusic: Music | undefined;
-  #updateDisplayRequestId = 0;
-  #state: State = "unloaded";
-
   #shortcutKey!: ShortcutKeyHandler;
 
+  #audioPlayer = new AudioPlayer();
+  #loadedMusic: Music.Music | undefined;
+  #updateDisplayRequestId = 0;
+
   connectedCallback() {
+    this.#setupMediaSession();
+    this.#setupTitleDisplay();
+    this.#setupPlayControl();
+    this.#setupVolumeControl();
+    this.#setupTempoControl();
+    this.#setupShortcutKey();
+  }
+
+  #setupMediaSession() {
     this.#mediaSession = this.querySelector("media-session")!;
+    this.#mediaSession.setActionHandler("play", async () => {
+      await this.play();
+    });
+    this.#mediaSession.setActionHandler("pause", async () => {
+      await this.pause();
+    });
+  }
+
+  #setupTitleDisplay() {
     this.#titleDisplay = this.querySelector("title-display")!;
+  }
+
+  #setupPlayControl() {
     this.#playControl = this.querySelector("play-control")!;
+    this.#playControl.addEventListener("play-control:toggle", async () => {
+      await this.togglePlaying();
+    });
+    this.#playControl.addEventListener("play-control:seek", async (e) => {
+      await this.seekTo(e.detail.second);
+    });
+  }
+
+  #setupVolumeControl() {
     this.#volumeControl = this.querySelector("volume-control")!;
-    this.#tempoControl = this.querySelector("tempo-control")!;
-
-    this.#mediaSession.setActionHandler("play", () => {
-      this.send({ type: "PLAY" });
-    });
-    this.#mediaSession.setActionHandler("pause", () => {
-      this.send({ type: "PAUSE" });
-    });
-
-    this.#playControl.addEventListener("play-control:toggle", () => {
-      this.send({ type: "TOGGLE_PLAYING" });
-    });
-    this.#playControl.addEventListener("play-control:seek", (e) => {
-      this.send({ type: "SEEK_TO", sec: e.detail.second });
-    });
-
     this.#volumeControl.addEventListener("volume-control:toggle", () => {
-      this.send({ type: "TOGGLE_MUTE" });
+      this.toggleMute();
     });
     this.#volumeControl.addEventListener("volume-control:seek", (e) => {
-      this.send({ type: "SET_VOLUME", volume: e.detail.volume / 100 });
+      this.volume = e.detail.volume / 100;
     });
+  }
 
+  #setupTempoControl() {
+    this.#tempoControl = this.querySelector("tempo-control")!;
     this.#tempoControl.addEventListener("tempo-control:reset", () => {
-      this.send({ type: "SET_TEMPO", tempo: 1.0 });
+      this.tempo = 1;
     });
     this.#tempoControl.addEventListener("tempo-control:seek", (e) => {
-      this.send({ type: "SET_TEMPO", tempo: e.detail.tempo });
+      this.tempo = e.detail.tempo;
     });
+  }
 
-    this.#shortcutKey = new ShortcutKeyHandler(this);
+  #setupShortcutKey() {
+    this.#shortcutKey = new ShortcutKeyHandler();
+    this.#shortcutKey.addEventListener("shortcut-key-handler:toggle-playing", async () => {
+      await this.togglePlaying();
+    });
+    this.#shortcutKey.addEventListener("shortcut-key-handler:toggle-mute", () => {
+      this.toggleMute();
+    });
+    this.#shortcutKey.addEventListener("shortcut-key-handler:seek-backward", async (e) => {
+      const ev = e as ShortcutKeyHandlerEventMap["shortcut-key-handler:seek-backward"];
+      await this.seekBackward(ev.detail.secs);
+    });
+    this.#shortcutKey.addEventListener("shortcut-key-handler:seek-forward", async (e) => {
+      const ev = e as ShortcutKeyHandlerEventMap["shortcut-key-handler:seek-forward"];
+      await this.seekForward(ev.detail.secs);
+    });
+    this.#shortcutKey.addEventListener("shortcut-key-handler:down-volume", (e) => {
+      const ev = e as ShortcutKeyHandlerEventMap["shortcut-key-handler:down-volume"];
+      this.downVolume(ev.detail.amount);
+    });
+    this.#shortcutKey.addEventListener("shortcut-key-handler:up-volume", (e) => {
+      const ev = e as ShortcutKeyHandlerEventMap["shortcut-key-handler:up-volume"];
+      this.upVolume(ev.detail.amount);
+    });
+    this.#shortcutKey.addEventListener("shortcut-key-handler:down-tempo", (e) => {
+      const ev = e as ShortcutKeyHandlerEventMap["shortcut-key-handler:down-tempo"];
+      this.downTempo(ev.detail.amount);
+    });
+    this.#shortcutKey.addEventListener("shortcut-key-handler:up-tempo", (e) => {
+      const ev = e as ShortcutKeyHandlerEventMap["shortcut-key-handler:up-tempo"];
+      this.upTempo(ev.detail.amount);
+    });
     this.#shortcutKey.register();
   }
 
   disconnectedCallback() {
+    this.#unsetShortcutKey();
+  }
+
+  #unsetShortcutKey() {
     this.#shortcutKey.unregister();
   }
 
-  async send(command: Command): Promise<void> {
-    switch (this.#state) {
-      case "unloaded":
-        return await this.#unloaded(command);
-      case "loading":
-        return await this.#loading(command);
-      case "playing":
-        return await this.#playing(command);
-      case "paused":
-        return await this.#paused(command);
-      default:
-        throw new Error(`unknown state: ${this.#state satisfies never}`);
-    }
-  }
-
-  // dispatchers per state
-
-  async #unloaded(command: Command) {
-    switch (command.type) {
-      case "LOAD":
-        return await this.#load(command.music);
-    }
-  }
-
-  async #loading(command: Command) {
-    switch (command.type) {
-    }
-  }
-
-  async #playing(command: Command) {
-    switch (command.type) {
-      case "PAUSE":
-        return await this.#pause();
-      default:
-        return await this.#playingPausedShared(command);
-    }
-  }
-
-  async #paused(command: Command) {
-    switch (command.type) {
-      case "PLAY":
-        return await this.#play();
-      default:
-        return await this.#playingPausedShared(command);
-    }
-  }
-
-  // dispatchees
-
-  async #load(music: Music) {
+  async load(music: Music.Music) {
     this.#dispatchEvent("music-player:start-loading", { music });
 
-    const prevState = this.#state;
-    this.#state = "loading";
-
     this.setAttribute("inert", "");
-
     this.#pauseUI();
 
-    try {
-      await this.#musicPlayer.load(music);
-    } catch (e) {
-      console.error(e);
-      this.#state = prevState;
-      this.#dispatchEvent("music-player:fail-loading", { music });
-      return;
-    } finally {
-      this.removeAttribute("inert");
+    const { file, metadata } = music;
+    const musicBytes = await file.arrayBuffer();
+    const intervalLoopInfo = Music.getIntervalLoopInfo(music);
+    const { duration } = metadata.format;
+
+    console.log(intervalLoopInfo ?? "none");
+
+    const result = await this.#audioPlayer.load(musicBytes, duration!, {
+      ...music.settings,
+      loop: intervalLoopInfo ?? true,
+    });
+    switch (result.type) {
+      case "success":
+        this.#loadToUI(music);
+        this.#loadToMediaSettion(music);
+        this.#loadedMusic = music;
+        this.#dispatchEvent("music-player:complete-loading", { music });
+        break;
+      case "failed":
+        console.error(result.cause);
+        this.#dispatchEvent("music-player:fail-loading", { music });
+        break;
+      case "unsupported":
+        console.error("unsupported operation");
+        break;
+      default:
+        result satisfies never;
     }
 
-    this.#loadToUI(music);
-    this.#loadToMediaSettion(music);
-    this.#loadedMusic = music;
-
-    this.#state = "paused";
-    this.#dispatchEvent("music-player:complete-loading", { music });
+    this.removeAttribute("inert");
   }
 
-  async #playingPausedShared(command: Command) {
-    switch (command.type) {
-      case "LOAD":
-        return await this.#load(command.music);
-      case "SET_VOLUME":
-        return this.#setVolume(command.volume);
-      case "DOWN_VOLUME":
-        return await this.#downVolume(command.amount);
-      case "UP_VOLUME":
-        return await this.#upVolume(command.amount);
-      case "SET_TEMPO":
-        return this.#setTempo(command.tempo);
-      case "DOWN_TEMPO":
-        return await this.#downTempo(command.amount);
-      case "UP_TEMPO":
-        return await this.#upTempo(command.amount);
-      case "TOGGLE_PLAYING":
-        return await this.#togglePlaying();
-      case "SEEK_TO":
-        return await this.#seekTo(command.sec);
-      case "SEEK_BACKWARD":
-        return await this.#seekBackward(command.secs);
-      case "SEEK_FORWARD":
-        return await this.#seekForward(command.secs);
-      case "TOGGLE_MUTE":
-        return this.#toggleMute();
-    }
-  }
-
-  #setVolume(volume: number) {
-    this.#musicPlayer.volume = volume;
+  set volume(volume: number) {
+    this.#audioPlayer.volume = volume;
     this.#volumeControl.volume = Math.round(volume * 100);
     this.#loadedMusic!.settings.volume = volume;
     MusicStorage.updateSettings(this.#loadedMusic!);
   }
 
-  async #downVolume(amount: number) {
+  downVolume(amount: number) {
     const { min, volume } = this.#volumeControl;
     const newVolume = Math.max(min / 100, volume / 100 - amount);
-    return await this.send({ type: "SET_VOLUME", volume: newVolume });
+    this.volume = newVolume;
   }
 
-  async #upVolume(amount: number) {
+  upVolume(amount: number) {
     const { max, volume } = this.#volumeControl;
     const newVolume = Math.min(max / 100, volume / 100 + amount);
-    return await this.send({ type: "SET_VOLUME", volume: newVolume });
+    this.volume = newVolume;
   }
 
-  #setTempo(tempo: number) {
-    this.#musicPlayer.tempo = tempo;
+  set tempo(tempo: number) {
+    this.#audioPlayer.tempo = tempo;
     this.#tempoControl.tempo = tempo;
     this.#loadedMusic!.settings.tempo = tempo;
     MusicStorage.updateSettings(this.#loadedMusic!);
   }
 
-  async #downTempo(amount: number) {
+  downTempo(amount: number) {
     const { min, tempo } = this.#tempoControl;
     const newTempo = Math.max(min, tempo - amount);
-    return await this.send({ type: "SET_TEMPO", tempo: newTempo });
+    this.tempo = newTempo;
   }
 
-  async #upTempo(amount: number) {
+  upTempo(amount: number) {
     const { max, tempo } = this.#tempoControl;
     const newTempo = Math.min(max, tempo + amount);
-    return await this.send({ type: "SET_TEMPO", tempo: newTempo });
+    this.tempo = newTempo;
   }
 
-  async #play() {
-    await this.#musicPlayer.play();
-    this.#dispatchEvent("music-player:play", { music: this.#loadedMusic! });
-    this.#playControl.toPlaying();
-    this.#mediaSession.toPlaying();
-    this.#startUpdateCurrentTime();
-    this.#state = "playing";
-  }
-
-  async #pause() {
-    await this.#musicPlayer.pause();
-    this.#dispatchEvent("music-player:pause", { music: this.#loadedMusic! });
-    this.#playControl.toPaused();
-    this.#mediaSession.toPaused();
-    this.#stopUpdateCurrentTime();
-    this.#state = "paused";
-  }
-
-  async #togglePlaying() {
-    switch (this.#state) {
-      case "paused":
-        return await this.send({ type: "PLAY" });
-      case "playing":
-        return await this.send({ type: "PAUSE" });
+  async play() {
+    const result = await this.#audioPlayer.play();
+    switch (result.type) {
+      case "success":
+        this.#dispatchEvent("music-player:play", { music: this.#loadedMusic! });
+        this.#renderForPlay();
+        break;
+      case "unsupported":
+        console.error("unsupported operation");
+        break;
+      default:
+        result satisfies never;
     }
   }
 
-  async #seekTo(sec: number) {
-    await this.#musicPlayer.seekTo(sec);
-    this.#playControl.time = sec;
+  #renderForPlay() {
+    this.#playControl.state = "playing";
+    this.#mediaSession.playbackState = "playing";
+    this.#startUpdateCurrentTime();
   }
 
-  async #seekBackward(secs: number) {
-    const { min, time } = this.#playControl;
-    const sec = Math.max(min, time - secs);
-    return await this.send({ type: "SEEK_TO", sec });
+  async pause() {
+    const result = await this.#audioPlayer.pause();
+    switch (result.type) {
+      case "success":
+        this.#dispatchEvent("music-player:pause", { music: this.#loadedMusic! });
+        this.#renderForPause();
+        break;
+      case "unsupported":
+        console.error("unsupported operation");
+        break;
+      default:
+        result satisfies never;
+    }
   }
 
-  async #seekForward(secs: number) {
-    const { max, time } = this.#playControl;
-    const sec = Math.min(max, time + secs);
-    return await this.send({ type: "SEEK_TO", sec });
+  #renderForPause() {
+    this.#playControl.state = "paused";
+    this.#mediaSession.playbackState = "paused";
+    this.#stopUpdateCurrentTime();
   }
 
-  #toggleMute() {
-    this.#musicPlayer.toggleMute();
-    this.#volumeControl.toggleIcon();
+  async togglePlaying() {
+    const result = await this.#audioPlayer.togglePlaying();
+    switch (result.type) {
+      case "success": {
+        this.#dispatchEvent(
+          `music-player:${result.current === "paused" ? "pause" : "play"}`, //
+          { music: this.#loadedMusic! },
+        );
+        this.#renderForTogglePlaying(result.current);
+        break;
+      }
+      case "unsupported":
+        console.error("unsupported operation");
+        break;
+      default:
+        result satisfies never;
+    }
+  }
+
+  #renderForTogglePlaying(current: "paused" | "playing") {
+    switch (current) {
+      case "paused":
+        this.#renderForPause();
+        break;
+      case "playing":
+        this.#renderForPlay();
+        break;
+      default:
+        current satisfies never;
+    }
+  }
+
+  async seekTo(sec: number) {
+    const result = await this.#audioPlayer.seekTo(sec);
+    switch (result.type) {
+      case "success":
+        break;
+      case "unsupported":
+        console.error("unsupported operation");
+        break;
+      default:
+        result satisfies never;
+    }
+  }
+
+  async seekBackward(secs: number) {
+    const { time, min, max } = this.#playControl;
+    const sec = clamp(time - secs, min, max);
+    await this.seekTo(sec);
+  }
+
+  async seekForward(secs: number) {
+    const { time, min, max } = this.#playControl;
+    const sec = clamp(time + secs, min, max);
+    await this.seekTo(sec);
+  }
+
+  toggleMute() {
+    const result = this.#audioPlayer.toggleMute();
+    switch (result.type) {
+      case "success":
+        this.#volumeControl.muted = result.current === "muted";
+        break;
+      default:
+        result.type satisfies never;
+    }
   }
 
   // helpers
 
   #pauseUI() {
-    this.#playControl.toPaused();
+    this.#playControl.state = "paused";
     this.#stopUpdateCurrentTime();
   }
 
-  #loadToUI(music: Music) {
+  #loadToUI(music: Music.Music) {
     const { file, metadata, settings } = music;
     const { common, format } = metadata;
 
@@ -325,7 +354,7 @@ export class MusicPlayerElement extends HTMLElement {
     this.#tempoControl.setup(settings.tempo);
   }
 
-  #loadToMediaSettion(music: Music) {
+  #loadToMediaSettion(music: Music.Music) {
     const { file, metadata } = music;
     const { artist, album, title } = metadata.common;
 
@@ -345,7 +374,7 @@ export class MusicPlayerElement extends HTMLElement {
   }
 
   #updateCurrentTime = () => {
-    this.#playControl.time = this.#musicPlayer.currentTime ?? 0;
+    this.#playControl.time = this.#audioPlayer.currentTime ?? 0;
     this.#updateDisplayRequestId = requestAnimationFrame(this.#updateCurrentTime);
   };
 

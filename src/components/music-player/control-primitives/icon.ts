@@ -6,8 +6,4 @@ export class ControlIconElement extends HTMLElement {
   show() {
     this.removeAttribute("hidden");
   }
-
-  toggle() {
-    this.toggleAttribute("hidden");
-  }
 }
