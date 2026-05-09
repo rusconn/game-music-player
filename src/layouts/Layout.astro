@@ -14,13 +14,9 @@
 </html>
 
 <script>
-  import * as MusicStorage from "../storage/music";
+  import * as StorageMigrator from "../storage/migrator";
 
-  document.addEventListener(
-    "DOMContentLoaded", //
-    MusicStorage.migrateIfNeeded,
-    { once: true },
-  );
+  StorageMigrator.migrateIfNeeded();
 
   const isMobile = /iPhone|Android|Mobile|iPad|iPod/i.test(navigator.userAgent);
 

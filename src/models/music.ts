@@ -1,7 +1,8 @@
 import { parseBlob, type IAudioMetadata } from "music-metadata";
 
 import { hash } from "../lib/hash";
-import * as MusicStorage from "../storage/music";
+import * as MusicMetadataStorage from "../storage/music/metadata";
+import * as MusicSettingsStorage from "../storage/music/settings";
 
 export type Music = {
   id: MusicId;
@@ -21,23 +22,33 @@ export type Settings = {
 
 export async function parse(file: File): Promise<Music | undefined> {
   const id = await musicId(file);
-  const info = MusicStorage.get(id);
+  const savedMetadata = MusicMetadataStorage.get(id);
+  const savedSettings = MusicSettingsStorage.get(id);
 
-  if (info) {
-    return { id, file, ...info };
-  } else {
-    try {
-      const metadata = await parseBlob(file, {
+  if (savedMetadata && savedSettings) {
+    return { id, file, metadata: savedMetadata, settings: savedSettings };
+  }
+
+  try {
+    const metadata =
+      savedMetadata ??
+      (await parseBlob(file, {
         skipCovers: true,
         duration: true,
-      });
-      const settings = { volume: 1, tempo: 1 };
-      MusicStorage.set(id, { metadata, settings });
-      return { id, file, metadata, settings };
-    } catch (e) {
-      console.error(e);
-      return undefined;
+      }));
+    const settings = savedSettings ?? { volume: 1, tempo: 1 };
+
+    if (!savedMetadata) {
+      MusicMetadataStorage.set(id, metadata);
     }
+    if (!savedSettings) {
+      MusicSettingsStorage.set(id, settings);
+    }
+
+    return { id, file, metadata, settings };
+  } catch (e) {
+    console.error(e);
+    return undefined;
   }
 }
 

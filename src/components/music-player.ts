@@ -1,6 +1,6 @@
 import { AudioPlayer } from "../lib/audio-player";
 import * as Music from "../models/music";
-import * as MusicStorage from "../storage/music";
+import * as MusicSettingsStorage from "../storage/music/settings";
 import type { TypedEvent } from "../utils/types";
 import {
   ShortcutKeyHandler,
@@ -193,7 +193,7 @@ export class MusicPlayerElement extends HTMLElement {
     this.#audioPlayer.volume = volume;
     this.#volumeControl.volume = Math.round(volume * 100);
     this.#loadedMusic!.settings.volume = volume;
-    MusicStorage.updateSettings(this.#loadedMusic!);
+    MusicSettingsStorage.update(this.#loadedMusic!);
   }
 
   downVolume(amount: number) {
@@ -212,7 +212,7 @@ export class MusicPlayerElement extends HTMLElement {
     this.#audioPlayer.tempo = tempo;
     this.#tempoControl.tempo = tempo;
     this.#loadedMusic!.settings.tempo = tempo;
-    MusicStorage.updateSettings(this.#loadedMusic!);
+    MusicSettingsStorage.update(this.#loadedMusic!);
   }
 
   downTempo(amount: number) {
