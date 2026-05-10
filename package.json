@@ -2,9 +2,16 @@
   "name": "game-music-player",
   "private": true,
   "type": "module",
-  "packageManager": "pnpm@11.0.8",
-  "engines": {
-    "node": "^24"
+  "devEngines": {
+    "runtime": {
+      "name": "node",
+      "version": "^24"
+    },
+    "packageManager": {
+      "name": "pnpm",
+      "version": "^11",
+      "onFail": "download"
+    }
   },
   "scripts": {
     "dev": "astro dev",
