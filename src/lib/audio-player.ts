@@ -39,22 +39,24 @@ type SeekToResult =
   | { type: "success" } //
   | { type: "unsupported" };
 
-type ToggleMuteResult = { type: "success"; current: "muted" | "unmuted" };
+type ToggleMuteResult =
+  | { type: "success"; current: "muted" | "unmuted" } //
+  | { type: "unsupported" };
 
 export class AudioPlayer extends EventTarget {
   #state: State = "unloaded";
 
-  #context!: AudioContext;
-  #sourceNode!: AudioBufferSourceNode;
-  #gainNode!: GainNode;
-  #muteNode!: GainNode;
+  #context: AudioContext | undefined;
+  #sourceNode: AudioBufferSourceNode | undefined;
+  #gainNode: GainNode | undefined;
+  #muteNode: GainNode | undefined;
 
   #audioDuration = 0;
   #accElapsedTime = 0;
   #intervalStartTime = 0;
 
   get currentTime() {
-    if (!this.#initialized()) {
+    if (!this.#context || !this.#sourceNode) {
       return;
     }
 
@@ -74,20 +76,60 @@ export class AudioPlayer extends EventTarget {
   }
 
   set volume(volume: number) {
-    this.#gainNode.gain.value = volume;
+    if (!this.#context || !this.#gainNode) {
+      return;
+    }
+
+    switch (this.#state) {
+      case "loaded":
+      case "playing":
+      case "paused":
+        this.#gainNode.gain.value = volume;
+        break;
+      default:
+        break;
+    }
   }
 
   set tempo(tempo: number) {
-    this.#accElapsedTime = this.currentTime ?? 0;
-    this.#intervalStartTime = this.#context.currentTime;
-    this.#sourceNode.playbackRate.value = tempo;
+    if (!this.#context || !this.#sourceNode) {
+      return;
+    }
+
+    switch (this.#state) {
+      case "loaded":
+      case "playing":
+      case "paused":
+        this.#accElapsedTime = this.currentTime ?? 0;
+        this.#intervalStartTime = this.#context.currentTime;
+        this.#sourceNode.playbackRate.value = tempo;
+        break;
+      default:
+        break;
+    }
   }
 
   set muted(muted: boolean) {
-    this.#muteNode.gain.value = Number(!muted);
+    if (!this.#context || !this.#muteNode) {
+      return;
+    }
+
+    switch (this.#state) {
+      case "loaded":
+      case "playing":
+      case "paused":
+        this.#muteNode.gain.value = Number(!muted);
+        break;
+      default:
+        break;
+    }
   }
 
   #intervalElapsedTime() {
+    if (!this.#context || !this.#sourceNode) {
+      return 0;
+    }
+
     return (
       (this.#context.currentTime - this.#intervalStartTime) * //
       this.#sourceNode.playbackRate.value
@@ -107,13 +149,13 @@ export class AudioPlayer extends EventTarget {
   }
 
   async #load(audio: ArrayBuffer, duration: number, options: LoadOptions): Promise<LoadResult> {
-    if (!this.#initialized()) {
+    if (!this.#context || !this.#gainNode) {
       this.#init();
     }
 
+    this.volume = 0;
     const prevState = this.#state;
     this.#state = "loading";
-    this.volume = 0;
 
     const { tempo = 1, volume = 1, loop = false } = options;
 
@@ -122,17 +164,16 @@ export class AudioPlayer extends EventTarget {
       this.#state = "loaded";
     } catch (e) {
       this.#state = prevState;
-      return { type: "failed", cause: e as DOMException };
+      if (e instanceof DOMException) {
+        return { type: "failed", cause: e };
+      }
+      throw e;
     }
     this.#audioDuration = duration;
     this.#accElapsedTime = 0;
-    this.#intervalStartTime = this.#context.currentTime;
+    this.#intervalStartTime = this.#context!.currentTime;
 
     return { type: "success" };
-  }
-
-  #initialized() {
-    return this.#context != null;
   }
 
   #init() {
@@ -151,6 +192,10 @@ export class AudioPlayer extends EventTarget {
 
   // NOTE: requestAnimationFrame may not be executed if the page is inactive
   #updateTimes = () => {
+    if (!this.#context || !this.#sourceNode) {
+      throw new Error("bug");
+    }
+
     const currentTime = this.currentTime;
 
     if (currentTime != null) {
@@ -182,7 +227,7 @@ export class AudioPlayer extends EventTarget {
   }
 
   async #play(): Promise<PlayResult> {
-    if (!this.#initialized()) {
+    if (!this.#context) {
       return { type: "unsupported" };
     }
 
@@ -201,7 +246,7 @@ export class AudioPlayer extends EventTarget {
   }
 
   async #pause(): Promise<PauseResult> {
-    if (!this.#initialized()) {
+    if (!this.#context) {
       return { type: "unsupported" };
     }
 
@@ -222,6 +267,10 @@ export class AudioPlayer extends EventTarget {
   }
 
   async #togglePlaying(): Promise<TogglePlayingResult> {
+    if (!this.#context) {
+      return { type: "unsupported" };
+    }
+
     switch (this.#context.state) {
       case "running":
         return await this.#pauseForToggle();
@@ -264,6 +313,10 @@ export class AudioPlayer extends EventTarget {
   }
 
   async #seekTo(sec: number): Promise<SeekToResult> {
+    if (!this.#context) {
+      return { type: "unsupported" };
+    }
+
     const offset = clamp(sec, 0, this.#audioDuration);
     await this.#recreateSourceNode({ type: "seek", offset });
     this.#accElapsedTime = offset;
@@ -280,6 +333,10 @@ export class AudioPlayer extends EventTarget {
   }
 
   async #recreateSourceNode(args: RecreateSourceNodeArgs) {
+    if (!this.#context || !this.#sourceNode || !this.#gainNode) {
+      throw new Error("bug");
+    }
+
     const oldSource = this.#sourceNode;
     const newSource = this.#context.createBufferSource();
 
@@ -290,7 +347,7 @@ export class AudioPlayer extends EventTarget {
         const { audio, tempo, volume, loop } = args;
         newSource.buffer = await this.#context.decodeAudioData(audio); // may rejects with DOMException
         newSource.playbackRate.value = tempo;
-        this.volume = volume;
+        this.#gainNode.gain.value = volume;
         newSource.loop = Boolean(loop);
         if (!loop) {
           newSource.onended = () => {
@@ -333,6 +390,10 @@ export class AudioPlayer extends EventTarget {
   }
 
   toggleMute(): ToggleMuteResult {
+    if (!this.#context || !this.#muteNode) {
+      return { type: "unsupported" };
+    }
+
     this.#muteNode.gain.value ^= 1;
     const current = this.#muteNode.gain.value === 0 ? "muted" : "unmuted";
     return { type: "success", current };

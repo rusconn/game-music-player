@@ -168,6 +168,9 @@ export class MusicPlayerElement extends HTMLElement {
       ...music.settings,
       loop: intervalLoopInfo ?? true,
     });
+
+    this.removeAttribute("inert");
+
     switch (result.type) {
       case "success":
         this.#loadToUI(music);
@@ -185,53 +188,58 @@ export class MusicPlayerElement extends HTMLElement {
       default:
         result satisfies never;
     }
-
-    this.removeAttribute("inert");
   }
 
   set volume(volume: number) {
+    if (this.hasAttribute("inert") || !this.#loadedMusic) return;
     this.#audioPlayer.volume = volume;
     this.#volumeControl.volume = Math.round(volume * 100);
-    this.#loadedMusic!.settings.volume = volume;
-    MusicSettingsStorage.update(this.#loadedMusic!);
+    this.#loadedMusic.settings.volume = volume;
+    MusicSettingsStorage.update(this.#loadedMusic);
   }
 
   downVolume(amount: number) {
+    if (this.hasAttribute("inert") || !this.#loadedMusic) return;
     const { min, volume } = this.#volumeControl;
     const newVolume = Math.max(min / 100, volume / 100 - amount);
     this.volume = newVolume;
   }
 
   upVolume(amount: number) {
+    if (this.hasAttribute("inert") || !this.#loadedMusic) return;
     const { max, volume } = this.#volumeControl;
     const newVolume = Math.min(max / 100, volume / 100 + amount);
     this.volume = newVolume;
   }
 
   set tempo(tempo: number) {
+    if (this.hasAttribute("inert") || !this.#loadedMusic) return;
     this.#audioPlayer.tempo = tempo;
     this.#tempoControl.tempo = tempo;
-    this.#loadedMusic!.settings.tempo = tempo;
-    MusicSettingsStorage.update(this.#loadedMusic!);
+    this.#loadedMusic.settings.tempo = tempo;
+    MusicSettingsStorage.update(this.#loadedMusic);
   }
 
   downTempo(amount: number) {
+    if (this.hasAttribute("inert") || !this.#loadedMusic) return;
     const { min, tempo } = this.#tempoControl;
     const newTempo = Math.max(min, tempo - amount);
     this.tempo = newTempo;
   }
 
   upTempo(amount: number) {
+    if (this.hasAttribute("inert") || !this.#loadedMusic) return;
     const { max, tempo } = this.#tempoControl;
     const newTempo = Math.min(max, tempo + amount);
     this.tempo = newTempo;
   }
 
   async play() {
+    if (this.hasAttribute("inert") || !this.#loadedMusic) return;
     const result = await this.#audioPlayer.play();
     switch (result.type) {
       case "success":
-        this.#dispatchEvent("music-player:play", { music: this.#loadedMusic! });
+        this.#dispatchEvent("music-player:play", { music: this.#loadedMusic });
         this.#renderForPlay();
         break;
       case "unsupported":
@@ -249,10 +257,11 @@ export class MusicPlayerElement extends HTMLElement {
   }
 
   async pause() {
+    if (this.hasAttribute("inert") || !this.#loadedMusic) return;
     const result = await this.#audioPlayer.pause();
     switch (result.type) {
       case "success":
-        this.#dispatchEvent("music-player:pause", { music: this.#loadedMusic! });
+        this.#dispatchEvent("music-player:pause", { music: this.#loadedMusic });
         this.#renderForPause();
         break;
       case "unsupported":
@@ -270,12 +279,13 @@ export class MusicPlayerElement extends HTMLElement {
   }
 
   async togglePlaying() {
+    if (this.hasAttribute("inert") || !this.#loadedMusic) return;
     const result = await this.#audioPlayer.togglePlaying();
     switch (result.type) {
       case "success": {
         this.#dispatchEvent(
           `music-player:${result.current === "paused" ? "pause" : "play"}`, //
-          { music: this.#loadedMusic! },
+          { music: this.#loadedMusic },
         );
         this.#renderForTogglePlaying(result.current);
         break;
@@ -302,6 +312,7 @@ export class MusicPlayerElement extends HTMLElement {
   }
 
   async seekTo(sec: number) {
+    if (this.hasAttribute("inert") || !this.#loadedMusic) return;
     const result = await this.#audioPlayer.seekTo(sec);
     switch (result.type) {
       case "success":
@@ -315,25 +326,31 @@ export class MusicPlayerElement extends HTMLElement {
   }
 
   async seekBackward(secs: number) {
+    if (this.hasAttribute("inert") || !this.#loadedMusic) return;
     const { time, min, max } = this.#playControl;
     const sec = clamp(time - secs, min, max);
     await this.seekTo(sec);
   }
 
   async seekForward(secs: number) {
+    if (this.hasAttribute("inert") || !this.#loadedMusic) return;
     const { time, min, max } = this.#playControl;
     const sec = clamp(time + secs, min, max);
     await this.seekTo(sec);
   }
 
   toggleMute() {
+    if (this.hasAttribute("inert") || !this.#loadedMusic) return;
     const result = this.#audioPlayer.toggleMute();
     switch (result.type) {
       case "success":
         this.#volumeControl.muted = result.current === "muted";
         break;
+      case "unsupported":
+        console.error("unsupported operation");
+        break;
       default:
-        result.type satisfies never;
+        result satisfies never;
     }
   }
 
