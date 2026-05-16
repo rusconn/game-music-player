@@ -111,10 +111,12 @@ export class AudioPlayer extends EventTarget {
       this.#init();
     }
 
+    const prevState = this.#state;
+    this.#state = "loading";
+    this.volume = 0;
+
     const { tempo = 1, volume = 1, loop = false } = options;
 
-    this.volume = 0;
-    const prevState = this.#state;
     try {
       await this.#recreateSourceNode({ type: "load", audio, tempo, volume, loop });
       this.#state = "loaded";
