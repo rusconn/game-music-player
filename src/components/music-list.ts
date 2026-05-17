@@ -58,10 +58,7 @@ export class MusicListElement extends HTMLElement {
     const { common, format } = music.metadata;
 
     title.textContent = common.title;
-
-    if (format.duration) {
-      duration.textContent = formatSec(format.duration);
-    }
+    duration.textContent = formatSec(format.duration);
 
     liFragment.firstElementChild!.setAttribute("data-id", music.id);
 

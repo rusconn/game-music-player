@@ -23,7 +23,7 @@ export type Metadata = {
     album?: string;
   };
   format: {
-    duration?: number;
+    duration: number;
     sampleRate?: number;
   };
   loopInfo?: {
@@ -57,7 +57,12 @@ export async function parse(file: File): Promise<Music | undefined> {
       skipCovers: true,
       duration: true,
     });
-    const metadata = createMetadata(rawMetadata, file.name);
+    const { duration } = rawMetadata.format;
+    if (duration == null) {
+      return undefined;
+    }
+
+    const metadata = createMetadata(rawMetadata, duration, file.name);
     const settings = savedSettings ?? { volume: 1, tempo: 1 };
 
     if (!savedMetadata || isOldMetadata) {
@@ -83,7 +88,11 @@ async function digest(file: File) {
   return await hash("SHA-1", buffer);
 }
 
-export function createMetadata(raw: IAudioMetadata, defaultTitle: string): Metadata {
+export function createMetadata(
+  raw: IAudioMetadata,
+  duration: number,
+  defaultTitle: string,
+): Metadata {
   const { common, format, native } = raw;
   const loopInfo = getLoopInfo(format.sampleRate, native.vorbis);
 
@@ -95,7 +104,7 @@ export function createMetadata(raw: IAudioMetadata, defaultTitle: string): Metad
       album: common.album?.trim(),
     },
     format: {
-      duration: format.duration,
+      duration,
       sampleRate: format.sampleRate,
     },
     loopInfo,

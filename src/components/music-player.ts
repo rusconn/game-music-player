@@ -164,7 +164,7 @@ export class MusicPlayerElement extends HTMLElement {
 
     console.log(loopInfo ?? "none");
 
-    const result = await this.#audioPlayer.load(musicBytes, duration!, {
+    const result = await this.#audioPlayer.load(musicBytes, duration, {
       ...music.settings,
       loop: loopInfo ?? true,
     });
@@ -366,7 +366,7 @@ export class MusicPlayerElement extends HTMLElement {
     const { common, format } = metadata;
 
     this.#titleDisplay.setup(common.title);
-    this.#playControl.setup(format.duration ?? 0);
+    this.#playControl.setup(format.duration);
     this.#volumeControl.setup(Math.round(settings.volume * 100));
     this.#tempoControl.setup(settings.tempo);
   }
