@@ -1,6 +1,6 @@
-import type { Metadata, MusicId } from "../../models/music";
+import type { Metadata, MetadataPossiblyOld, MusicId } from "../../models/music";
 
-export function get(id: MusicId): Metadata | undefined {
+export function get(id: MusicId): MetadataPossiblyOld | undefined {
   const saved = localStorage.getItem(`metadata:${id}`);
   return saved ? JSON.parse(saved) : undefined;
 }

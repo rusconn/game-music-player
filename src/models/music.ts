@@ -13,32 +13,54 @@ export type Music = {
 
 export type MusicId = Awaited<ReturnType<typeof musicId>>;
 
-export type Metadata = IAudioMetadata;
+export type MetadataPossiblyOld = IAudioMetadata | Metadata;
+
+export type Metadata = {
+  version: number;
+  common: {
+    title: string;
+    artist?: string;
+    album?: string;
+  };
+  format: {
+    duration?: number;
+    sampleRate?: number;
+  };
+  loopInfo?: {
+    start: number;
+    end: number;
+  };
+};
 
 export type Settings = {
   volume: number;
   tempo: number;
 };
 
+const CURRENT_METADATA_VERSION = 1;
+
 export async function parse(file: File): Promise<Music | undefined> {
   const id = await musicId(file);
   const savedMetadata = MusicMetadataStorage.get(id);
   const savedSettings = MusicSettingsStorage.get(id);
 
-  if (savedMetadata && savedSettings) {
+  const isOldMetadata =
+    savedMetadata != null &&
+    (!("version" in savedMetadata) || savedMetadata.version < CURRENT_METADATA_VERSION);
+
+  if (savedMetadata && savedSettings && !isOldMetadata) {
     return { id, file, metadata: savedMetadata, settings: savedSettings };
   }
 
   try {
-    const metadata =
-      savedMetadata ??
-      (await parseBlob(file, {
-        skipCovers: true,
-        duration: true,
-      }));
+    const rawMetadata = await parseBlob(file, {
+      skipCovers: true,
+      duration: true,
+    });
+    const metadata = createMetadata(rawMetadata, file.name);
     const settings = savedSettings ?? { volume: 1, tempo: 1 };
 
-    if (!savedMetadata) {
+    if (!savedMetadata || isOldMetadata) {
       MusicMetadataStorage.set(id, metadata);
     }
     if (!savedSettings) {
@@ -61,29 +83,46 @@ async function digest(file: File) {
   return await hash("SHA-1", buffer);
 }
 
-export function getIntervalLoopInfo(music: Music) {
-  const { sampleRate } = music.metadata.format;
-  const { vorbis } = music.metadata.native;
+export function createMetadata(raw: IAudioMetadata, defaultTitle: string): Metadata {
+  const { common, format, native } = raw;
+  const loopInfo = getLoopInfo(format.sampleRate, native.vorbis);
 
-  if (!sampleRate) return;
+  return {
+    version: CURRENT_METADATA_VERSION,
+    common: {
+      title: common.title?.trim() || defaultTitle,
+      artist: common.artist?.trim(),
+      album: common.album?.trim(),
+    },
+    format: {
+      duration: format.duration,
+      sampleRate: format.sampleRate,
+    },
+    loopInfo,
+  };
+}
 
-  if (vorbis) {
-    const start = parseTagAsNumber(vorbis, "LOOPSTART");
-    const length = parseTagAsNumber(vorbis, "LOOPLENGTH");
-    const end = parseTagAsNumber(vorbis, "LOOPEND");
+function getLoopInfo(
+  sampleRate: number | undefined,
+  vorbis: IAudioMetadata["native"]["vorbis"],
+): Metadata["loopInfo"] {
+  if (!sampleRate || !vorbis) return;
 
-    if (start != null) {
-      if (length != null) {
-        return { start: start / sampleRate, end: (start + length) / sampleRate };
-      }
-      if (end != null) {
-        return { start: start / sampleRate, end: end / sampleRate };
-      }
+  const start = parseTagAsNumber(vorbis, "LOOPSTART");
+  const length = parseTagAsNumber(vorbis, "LOOPLENGTH");
+  const end = parseTagAsNumber(vorbis, "LOOPEND");
+
+  if (start != null) {
+    if (length != null) {
+      return { start: start / sampleRate, end: (start + length) / sampleRate };
+    }
+    if (end != null) {
+      return { start: start / sampleRate, end: end / sampleRate };
     }
   }
 }
 
-function parseTagAsNumber(tags: Metadata["native"]["any"], tagId: string) {
+function parseTagAsNumber(tags: IAudioMetadata["native"]["any"], tagId: string) {
   const tag = tags.find((tag) => tag.id === tagId);
   return tag && Number(tag.value);
 }

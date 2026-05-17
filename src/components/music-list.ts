@@ -55,9 +55,9 @@ export class MusicListElement extends HTMLElement {
       this.#dispatchEvent("music-list:select", { music });
     });
 
-    const { format, common } = music.metadata;
+    const { common, format } = music.metadata;
 
-    title.textContent = common.title?.trim() || music.file.name;
+    title.textContent = common.title;
 
     if (format.duration) {
       duration.textContent = formatSec(format.duration);

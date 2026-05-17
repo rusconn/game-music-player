@@ -158,15 +158,15 @@ export class MusicPlayerElement extends HTMLElement {
     this.#pauseUI();
 
     const { file, metadata } = music;
+    const { format, loopInfo } = metadata;
+    const { duration } = format;
     const musicBytes = await file.arrayBuffer();
-    const intervalLoopInfo = Music.getIntervalLoopInfo(music);
-    const { duration } = metadata.format;
 
-    console.log(intervalLoopInfo ?? "none");
+    console.log(loopInfo ?? "none");
 
     const result = await this.#audioPlayer.load(musicBytes, duration!, {
       ...music.settings,
-      loop: intervalLoopInfo ?? true,
+      loop: loopInfo ?? true,
     });
 
     this.removeAttribute("inert");
@@ -362,24 +362,17 @@ export class MusicPlayerElement extends HTMLElement {
   }
 
   #loadToUI(music: Music.Music) {
-    const { file, metadata, settings } = music;
+    const { metadata, settings } = music;
     const { common, format } = metadata;
 
-    this.#titleDisplay.setup(common.title?.trim() || file.name);
+    this.#titleDisplay.setup(common.title);
     this.#playControl.setup(format.duration ?? 0);
     this.#volumeControl.setup(Math.round(settings.volume * 100));
     this.#tempoControl.setup(settings.tempo);
   }
 
   #loadToMediaSettion(music: Music.Music) {
-    const { file, metadata } = music;
-    const { artist, album, title } = metadata.common;
-
-    this.#mediaSession.loadMetadata({
-      title: title?.trim() || file.name,
-      artist,
-      album,
-    });
+    this.#mediaSession.loadMetadata(music.metadata.common);
   }
 
   #startUpdateCurrentTime() {
