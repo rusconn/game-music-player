@@ -18,7 +18,6 @@
     "check": "astro check && prettier --cache --check .",
     "build": "astro build",
     "preview": "astro preview",
-    "login": "firebase login",
     "deploy": "firebase deploy --project game-music-player-web"
   },
   "dependencies": {
