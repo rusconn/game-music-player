@@ -1,4 +1,4 @@
-import { parseBlob, type IAudioMetadata } from "music-metadata";
+import { parseBuffer, type IAudioMetadata } from "music-metadata";
 
 import { hash } from "../lib/hash";
 import * as MusicMetadataStorage from "../storage/music/metadata";
@@ -11,7 +11,7 @@ export type Music = {
   settings: Settings;
 };
 
-export type MusicId = Awaited<ReturnType<typeof musicId>>;
+export type MusicId = `music-${string}`;
 
 export type MetadataPossiblyOld = IAudioMetadata | Metadata;
 
@@ -40,7 +40,8 @@ export type Settings = {
 const CURRENT_METADATA_VERSION = 1;
 
 export async function parse(file: File): Promise<Music | undefined> {
-  const id = await musicId(file);
+  const buffer = await file.arrayBuffer();
+  const id = `music-${await hash("SHA-1", buffer)}` as const;
   const savedMetadata = MusicMetadataStorage.get(id);
   const savedSettings = MusicSettingsStorage.get(id);
 
@@ -53,7 +54,7 @@ export async function parse(file: File): Promise<Music | undefined> {
   }
 
   try {
-    const rawMetadata = await parseBlob(file, {
+    const rawMetadata = await parseBuffer(new Uint8Array(buffer), file.type, {
       skipCovers: true,
       duration: true,
     });
@@ -77,15 +78,6 @@ export async function parse(file: File): Promise<Music | undefined> {
     console.error(e);
     return undefined;
   }
-}
-
-async function musicId(file: File) {
-  return `music-${await digest(file)}` as const;
-}
-
-async function digest(file: File) {
-  const buffer = await file.arrayBuffer();
-  return await hash("SHA-1", buffer);
 }
 
 export function createMetadata(
