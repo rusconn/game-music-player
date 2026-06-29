@@ -8,6 +8,14 @@ export default defineConfig({
     AstroPWA({
       registerType: "autoUpdate",
       includeAssets: ["5-seconds-of-silence.mp3", "favicon.svg", "icons.svg"],
+      workbox: {
+        navigateFallback: "/",
+        globPatterns: ["**/*.{css,js,html,svg,png,ico,mp3,woff2}"],
+      },
+      devOptions: {
+        enabled: true,
+        navigateFallbackAllowlist: [/^\/$/],
+      },
       manifest: {
         name: "Game Music Player",
         short_name: "Game Music Player",
