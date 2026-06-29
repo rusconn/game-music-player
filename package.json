@@ -21,7 +21,7 @@
     "deploy": "firebase deploy --project game-music-player-web"
   },
   "dependencies": {
-    "music-metadata": "10.9.1"
+    "music-metadata": "11.13.0"
   },
   "devDependencies": {
     "@astrojs/check": "^0.9.9",
