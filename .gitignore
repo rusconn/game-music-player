@@ -13,3 +13,6 @@ pnpm-debug.log*
 # hosting
 .firebase
 firebase-debug.log
+
+# pwa
+dev-dist/
