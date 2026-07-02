@@ -1,7 +1,4 @@
 import type { TypedEvent } from "../../utils/types";
-import type { ControlBarElement } from "./control-primitives/bar";
-import type { ControlButtonElement } from "./control-primitives/button";
-import type { ControlIconElement } from "./control-primitives/icon";
 
 declare global {
   interface HTMLElementTagNameMap {
@@ -25,10 +22,10 @@ type ToggleDetail = {};
 type SeekDetail = { volume: number };
 
 export class VolumeControlElement extends HTMLElement {
-  #muteButton!: ControlButtonElement;
-  #volumeIcon!: ControlIconElement;
-  #mutedIcon!: ControlIconElement;
-  #volumeBar!: ControlBarElement;
+  #muteButton!: HTMLButtonElement;
+  #volumeIcon!: HTMLSpanElement;
+  #mutedIcon!: HTMLSpanElement;
+  #volumeBar!: HTMLInputElement;
   #volumeText!: HTMLSpanElement;
 
   connectedCallback() {
@@ -43,7 +40,7 @@ export class VolumeControlElement extends HTMLElement {
     });
 
     this.#volumeBar.addEventListener("input", (e) => {
-      const input = e.currentTarget as ControlBarElement;
+      const input = e.currentTarget as HTMLInputElement;
       const value = Number(input.value);
       this.#dispatchEvent("volume-control:seek", { volume: value });
     });

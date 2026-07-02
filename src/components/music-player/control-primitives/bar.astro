@@ -4,34 +4,17 @@ import type { HTMLAttributes } from "astro/types";
 type Props = Omit<HTMLAttributes<"input">, "type">;
 
 const { props } = Astro;
-const { id, class: class_, ...rest } = props;
 ---
 
-<control-bar {...{ id, class: class_ }}>
-  <input type="range" {...rest} />
-</control-bar>
-
-<script>
-  import { ControlBarElement } from "./bar";
-
-  if (!customElements.get("control-bar")) {
-    customElements.define("control-bar", ControlBarElement);
-  }
-</script>
+<input type="range" {...props} />
 
 <style>
-  control-bar {
-    display: flex;
-    align-items: center;
+  input {
     flex-grow: 1;
+    cursor: pointer;
 
-    & input {
-      inline-size: 100%;
-      cursor: pointer;
-
-      &:disabled {
-        cursor: not-allowed;
-      }
+    &:disabled {
+      cursor: not-allowed;
     }
   }
 </style>

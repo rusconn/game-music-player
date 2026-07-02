@@ -7,7 +7,6 @@ import {
   type ShortcutKeyHandlerEventMap,
 } from "./music-player/_helpers/shortcut-key-handler";
 import type { MediaSessionElement } from "./music-player/media-session";
-import type { TitleDisplayElement } from "./music-player/title-display";
 import type { PlayControlElement } from "./music-player/play-control";
 import type { VolumeControlElement } from "./music-player/volume-control";
 import type { TempoControlElement } from "./music-player/tempo-control";
@@ -45,7 +44,7 @@ type FailLoadingDetail = { music: Music.Music };
 
 export class MusicPlayerElement extends HTMLElement {
   #mediaSession!: MediaSessionElement;
-  #titleDisplay!: TitleDisplayElement;
+  #titleDisplay!: HTMLDivElement;
   #playControl!: PlayControlElement;
   #volumeControl!: VolumeControlElement;
   #tempoControl!: TempoControlElement;
@@ -77,7 +76,7 @@ export class MusicPlayerElement extends HTMLElement {
   }
 
   #setupTitleDisplay() {
-    this.#titleDisplay = this.querySelector("title-display")!;
+    this.#titleDisplay = this.querySelector(".title-display")!;
   }
 
   #setupControlsFieldset() {
@@ -371,7 +370,7 @@ export class MusicPlayerElement extends HTMLElement {
     const { metadata, settings } = music;
     const { common, format } = metadata;
 
-    this.#titleDisplay.title = common.title;
+    this.#titleDisplay.textContent = common.title;
     this.#playControl.duration = format.duration;
     this.#playControl.time = 0;
     this.#volumeControl.volume = Math.round(settings.volume * 100);

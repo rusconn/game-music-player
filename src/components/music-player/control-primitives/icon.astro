@@ -8,19 +8,11 @@ type Props = HTMLAttributes<"div"> & {
 const { iconId, ...props } = Astro.props;
 ---
 
-<control-icon {...props}>
+<span {...props}>
   <svg>
     <use href=`/icons.svg#${iconId}`></use>
   </svg>
-</control-icon>
-
-<script>
-  import { ControlIconElement } from "./icon";
-
-  if (!customElements.get("control-icon")) {
-    customElements.define("control-icon", ControlIconElement);
-  }
-</script>
+</span>
 
 <style>
   svg {

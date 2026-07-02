@@ -1,8 +1,5 @@
 import { formatSec } from "../../utils/format";
 import type { TypedEvent } from "../../utils/types";
-import type { ControlBarElement } from "./control-primitives/bar";
-import type { ControlButtonElement } from "./control-primitives/button";
-import type { ControlIconElement } from "./control-primitives/icon";
 
 declare global {
   interface HTMLElementTagNameMap {
@@ -26,10 +23,10 @@ type ToggleDetail = {};
 type SeekDetail = { second: number };
 
 export class PlayControlElement extends HTMLElement {
-  #playPause!: ControlButtonElement;
-  #playIcon!: ControlIconElement;
-  #pauseIcon!: ControlIconElement;
-  #seekBar!: ControlBarElement;
+  #playPause!: HTMLButtonElement;
+  #playIcon!: HTMLSpanElement;
+  #pauseIcon!: HTMLSpanElement;
+  #seekBar!: HTMLInputElement;
   #currentTime!: HTMLSpanElement;
 
   #duraionValue = 0;
@@ -47,7 +44,7 @@ export class PlayControlElement extends HTMLElement {
     });
 
     this.#seekBar.addEventListener("change", (e) => {
-      const input = e.currentTarget as ControlBarElement;
+      const input = e.currentTarget as HTMLInputElement;
       const second = Number(input.value);
       this.#dispatchEvent("play-control:seek", { second });
     });
