@@ -1,9 +1,1 @@
-export class ControlIconElement extends HTMLElement {
-  hide() {
-    this.setAttribute("hidden", "");
-  }
-
-  show() {
-    this.removeAttribute("hidden");
-  }
-}
+export class ControlIconElement extends HTMLElement {}

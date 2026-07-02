@@ -5,22 +5,10 @@ export class PlaiyingBarsElement extends HTMLElement {
     this.#playingBars = this.querySelectorAll("span");
   }
 
-  toPlaying() {
+  set state(state: "playing" | "paused" | "idle") {
     for (const bar of this.#playingBars) {
-      bar.classList.remove("paused");
-      bar.classList.remove("hidden");
-    }
-  }
-
-  toPaused() {
-    for (const bar of this.#playingBars) {
-      bar.classList.add("paused");
-    }
-  }
-
-  hide() {
-    for (const bar of this.#playingBars) {
-      bar.classList.add("hidden");
+      bar.classList.toggle("paused", state === "paused");
+      bar.classList.toggle("hidden", state === "idle");
     }
   }
 }

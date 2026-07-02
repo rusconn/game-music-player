@@ -69,42 +69,59 @@ export class MusicListElement extends HTMLElement {
     this.#ul.setAttribute("inert", "");
 
     if (this.#lastPlayedMusic) {
-      this.#queryRow(this.#lastPlayedMusic)
-        ?.querySelector<PlaiyingBarsElement>("playing-bars")
-        ?.hide();
+      const bars = this.#queryPlayingBars(this.#lastPlayedMusic);
+      if (bars) {
+        bars.state = "idle";
+      }
     }
 
-    this.#queryRow(music) //
-      ?.querySelector<LoadingCircleElement>("loading-circle")
-      ?.show();
+    const circle = this.#queryLoadingCircle(music);
+    if (circle) {
+      circle.loading = true;
+    }
   }
 
   completeLoading(music: Music.Music) {
-    this.#queryRow(music) //
-      ?.querySelector<LoadingCircleElement>("loading-circle")
-      ?.hide();
+    const circle = this.#queryLoadingCircle(music);
+    if (circle) {
+      circle.loading = false;
+    }
+
     this.#ul.removeAttribute("inert");
   }
 
   failLoading(music: Music.Music) {
-    this.#queryRow(music) //
-      ?.querySelector<LoadingCircleElement>("loading-circle")
-      ?.hide();
+    const circle = this.#queryLoadingCircle(music);
+    if (circle) {
+      circle.loading = false;
+    }
+
     alert("Sorry, failed to load the music file.\nTry another browser.");
     this.#ul.removeAttribute("inert");
   }
 
   toPlaying(music: Music.Music) {
-    this.#queryRow(music) //
-      ?.querySelector<PlaiyingBarsElement>("playing-bars")
-      ?.toPlaying();
+    const bars = this.#queryPlayingBars(music);
+    if (bars) {
+      bars.state = "playing";
+    }
+
     this.#lastPlayedMusic = music;
   }
 
   toPaused(music: Music.Music) {
-    this.#queryRow(music) //
-      ?.querySelector<PlaiyingBarsElement>("playing-bars")
-      ?.toPaused();
+    const bars = this.#queryPlayingBars(music);
+    if (bars) {
+      bars.state = "paused";
+    }
+  }
+
+  #queryLoadingCircle(music: Music.Music) {
+    return this.#queryRow(music)?.querySelector<LoadingCircleElement>("loading-circle");
+  }
+
+  #queryPlayingBars(music: Music.Music) {
+    return this.#queryRow(music)?.querySelector<PlaiyingBarsElement>("playing-bars");
   }
 
   #queryRow(music: Music.Music) {

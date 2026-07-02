@@ -5,7 +5,7 @@ export class ControlButtonElement extends HTMLElement {
     this.#button = this.querySelector("button")!;
   }
 
-  enable() {
-    this.#button.removeAttribute("disabled");
+  set disabled(disabled: HTMLButtonElement["disabled"]) {
+    this.#button.disabled = disabled;
   }
 }

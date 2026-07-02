@@ -69,18 +69,18 @@ export class VolumeControlElement extends HTMLElement {
 
   set muted(muted: boolean) {
     if (muted) {
-      this.#volumeIcon.hide();
-      this.#mutedIcon.show();
+      this.#volumeIcon.hidden = true;
+      this.#mutedIcon.hidden = false;
     } else {
-      this.#mutedIcon.hide();
-      this.#volumeIcon.show();
+      this.#volumeIcon.hidden = false;
+      this.#mutedIcon.hidden = true;
     }
   }
 
   setup(volume: number) {
     this.volume = volume;
-    this.#muteButton.enable();
-    this.#volumeBar.enable();
+    this.#muteButton.disabled = false;
+    this.#volumeBar.disabled = false;
   }
 
   #dispatchEvent<Type extends keyof VolumeControlEventMap>(

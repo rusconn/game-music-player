@@ -25,7 +25,7 @@ export class ControlBarElement extends HTMLElement {
     this.#input.max = max;
   }
 
-  enable() {
-    this.#input.removeAttribute("disabled");
+  set disabled(disabled: HTMLInputElement["disabled"]) {
+    this.#input.disabled = disabled;
   }
 }

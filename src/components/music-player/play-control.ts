@@ -91,21 +91,21 @@ export class PlayControlElement extends HTMLElement {
   }
 
   #toPlaying() {
-    this.#playIcon.hide();
-    this.#pauseIcon.show();
+    this.#playIcon.hidden = true;
+    this.#pauseIcon.hidden = false;
   }
 
   #toPaused() {
-    this.#playIcon.show();
-    this.#pauseIcon.hide();
+    this.#playIcon.hidden = false;
+    this.#pauseIcon.hidden = true;
   }
 
   setup(durationSecs: number) {
     this.time = 0;
     this.#seekBar.max = durationSecs.toString();
     this.#duraionValue = durationSecs;
-    this.#playPause.enable();
-    this.#seekBar.enable();
+    this.#playPause.disabled = false;
+    this.#seekBar.disabled = false;
   }
 
   #startSeek = () => {

@@ -5,11 +5,7 @@ export class LoadingCircleElement extends HTMLElement {
     this.#loader = this.querySelector("div")!;
   }
 
-  show() {
-    this.#loader.classList.remove("hidden");
-  }
-
-  hide() {
-    this.#loader.classList.add("hidden");
+  set loading(loading: boolean) {
+    this.#loader.classList.toggle("hidden", !loading);
   }
 }
