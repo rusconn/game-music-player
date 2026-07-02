@@ -80,11 +80,7 @@ export async function parse(file: File): Promise<Music | undefined> {
   }
 }
 
-export function createMetadata(
-  raw: IAudioMetadata,
-  duration: number,
-  defaultTitle: string,
-): Metadata {
+function createMetadata(raw: IAudioMetadata, duration: number, defaultTitle: string): Metadata {
   const { common, format, native } = raw;
   const loopInfo = getLoopInfo(format.sampleRate, native.vorbis);
 

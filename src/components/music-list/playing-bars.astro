@@ -1,15 +1,15 @@
 ---
 import type { HTMLAttributes } from "astro/types";
 
-type Props = HTMLAttributes<"div">;
+type Props = Omit<HTMLAttributes<"div">, "hidden">;
 
 const { props } = Astro;
 ---
 
-<playing-bars {...props}>
-  <span class="playing-bar hidden playing-bar-1"></span>
-  <span class="playing-bar hidden playing-bar-2"></span>
-  <span class="playing-bar hidden playing-bar-3"></span>
+<playing-bars {...props} hidden>
+  <span class="playing-bar playing-bar-1"></span>
+  <span class="playing-bar playing-bar-2"></span>
+  <span class="playing-bar playing-bar-3"></span>
 </playing-bars>
 
 <script>
@@ -31,20 +31,20 @@ const { props } = Astro;
     inset-block-start: 0.25rem;
     inset-inline-start: 0.25rem;
 
+    &[hidden] {
+      display: none;
+    }
+
+    &.paused .playing-bar {
+      animation-play-state: paused;
+    }
+
     .playing-bar {
       display: inline-block;
       background-color: currentColor;
       inline-size: 0.25rem;
       block-size: 100%;
       animation: up-and-down 1.3s ease infinite alternate;
-
-      &.paused {
-        animation-play-state: paused;
-      }
-
-      &.hidden {
-        display: none;
-      }
     }
 
     .playing-bar-1 {

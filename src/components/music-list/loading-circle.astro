@@ -1,13 +1,13 @@
 ---
 import type { HTMLAttributes } from "astro/types";
 
-type Props = HTMLAttributes<"div">;
+type Props = Omit<HTMLAttributes<"div">, "hidden">;
 
 const { props } = Astro;
 ---
 
-<loading-circle {...props}>
-  <div class="loader hidden"></div>
+<loading-circle {...props} hidden>
+  <div class="loader"></div>
 </loading-circle>
 
 <script>
@@ -26,6 +26,10 @@ const { props } = Astro;
     place-items: center;
     pointer-events: none;
 
+    &[hidden] {
+      display: none;
+    }
+
     .loader {
       inline-size: 0.875rem;
       block-size: 0.875rem;
@@ -33,10 +37,6 @@ const { props } = Astro;
       border-block-start-color: #555;
       border-radius: 100vmax;
       animation: spin 0.8s linear infinite;
-
-      &.hidden {
-        display: none;
-      }
     }
   }
 
