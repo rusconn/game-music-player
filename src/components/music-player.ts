@@ -321,6 +321,7 @@ export class MusicPlayerElement extends HTMLElement {
     const result = await this.#audioPlayer.seekTo(sec);
     switch (result.type) {
       case "success":
+        this.#playControl.time = this.#audioPlayer.currentTime ?? 0;
         break;
       case "unsupported":
         console.error("unsupported operation");
