@@ -5,7 +5,7 @@ export class TitleDisplayElement extends HTMLElement {
     this.#title = this.querySelector(".title")!;
   }
 
-  setup(title: string) {
+  set title(title: string) {
     this.#title.textContent = title;
   }
 }

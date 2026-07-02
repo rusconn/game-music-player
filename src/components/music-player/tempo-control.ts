@@ -62,12 +62,6 @@ export class TempoControlElement extends HTMLElement {
     return Number(this.#tempoBar.max);
   }
 
-  setup(tempo: number) {
-    this.tempo = tempo;
-    this.#tempoButton.disabled = false;
-    this.#tempoBar.disabled = false;
-  }
-
   #dispatchEvent<Type extends keyof TempoControlEventMap>(
     type: Type,
     detail: TempoControlEventMap[Type] extends CustomEvent<infer Detail> ? Detail : never,

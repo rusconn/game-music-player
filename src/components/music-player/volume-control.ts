@@ -77,12 +77,6 @@ export class VolumeControlElement extends HTMLElement {
     }
   }
 
-  setup(volume: number) {
-    this.volume = volume;
-    this.#muteButton.disabled = false;
-    this.#volumeBar.disabled = false;
-  }
-
   #dispatchEvent<Type extends keyof VolumeControlEventMap>(
     type: Type,
     detail: VolumeControlEventMap[Type] extends CustomEvent<infer Detail> ? Detail : never,

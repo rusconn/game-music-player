@@ -49,6 +49,7 @@ export class MusicPlayerElement extends HTMLElement {
   #playControl!: PlayControlElement;
   #volumeControl!: VolumeControlElement;
   #tempoControl!: TempoControlElement;
+  #controlsFieldset!: HTMLFieldSetElement;
   #shortcutKey!: ShortcutKeyHandler;
 
   #audioPlayer = new AudioPlayer();
@@ -58,6 +59,7 @@ export class MusicPlayerElement extends HTMLElement {
   connectedCallback() {
     this.#setupMediaSession();
     this.#setupTitleDisplay();
+    this.#setupControlsFieldset();
     this.#setupPlayControl();
     this.#setupVolumeControl();
     this.#setupTempoControl();
@@ -76,6 +78,10 @@ export class MusicPlayerElement extends HTMLElement {
 
   #setupTitleDisplay() {
     this.#titleDisplay = this.querySelector("title-display")!;
+  }
+
+  #setupControlsFieldset() {
+    this.#controlsFieldset = this.querySelector("fieldset")!;
   }
 
   #setupPlayControl() {
@@ -365,10 +371,12 @@ export class MusicPlayerElement extends HTMLElement {
     const { metadata, settings } = music;
     const { common, format } = metadata;
 
-    this.#titleDisplay.setup(common.title);
-    this.#playControl.setup(format.duration);
-    this.#volumeControl.setup(Math.round(settings.volume * 100));
-    this.#tempoControl.setup(settings.tempo);
+    this.#titleDisplay.title = common.title;
+    this.#playControl.duration = format.duration;
+    this.#playControl.time = 0;
+    this.#volumeControl.volume = Math.round(settings.volume * 100);
+    this.#tempoControl.tempo = settings.tempo;
+    this.#controlsFieldset.disabled = false;
   }
 
   #loadToMediaSettion(music: Music.Music) {

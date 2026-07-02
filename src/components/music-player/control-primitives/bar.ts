@@ -24,8 +24,4 @@ export class ControlBarElement extends HTMLElement {
   set max(max: HTMLInputElement["max"]) {
     this.#input.max = max;
   }
-
-  set disabled(disabled: HTMLInputElement["disabled"]) {
-    this.#input.disabled = disabled;
-  }
 }

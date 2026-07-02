@@ -69,6 +69,11 @@ export class PlayControlElement extends HTMLElement {
     }
   }
 
+  set duration(durationSecs: number) {
+    this.#seekBar.max = durationSecs.toString();
+    this.#duraionValue = durationSecs;
+  }
+
   get min() {
     return Number(this.#seekBar.min);
   }
@@ -98,14 +103,6 @@ export class PlayControlElement extends HTMLElement {
   #toPaused() {
     this.#playIcon.hidden = false;
     this.#pauseIcon.hidden = true;
-  }
-
-  setup(durationSecs: number) {
-    this.time = 0;
-    this.#seekBar.max = durationSecs.toString();
-    this.#duraionValue = durationSecs;
-    this.#playPause.disabled = false;
-    this.#seekBar.disabled = false;
   }
 
   #startSeek = () => {

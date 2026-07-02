@@ -11,10 +11,10 @@ const { props } = Astro;
 ---
 
 <tempo-control {...props}>
-  <ControlButton class="tempo-button" disabled>
+  <ControlButton class="tempo-button">
     <ControlIcon class="tempo-icon" iconId="mdi--metronome" />
   </ControlButton>
-  <ControlBar class="tempo-bar" min="0.5" max="1.5" value="1" step="0.01" disabled />
+  <ControlBar class="tempo-bar" min="0.5" max="1.5" value="1" step="0.01" />
   <span class="tempo-text">1.00</span>
 </tempo-control>
 

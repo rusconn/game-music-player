@@ -8,11 +8,13 @@ import TempoControl from "./music-player/tempo-control.astro";
 
 <music-player>
   <TitleDisplay />
-  <PlayControl />
-  <div class="volume-and-tempo">
-    <VolumeControl />
-    <TempoControl />
-  </div>
+  <fieldset disabled>
+    <PlayControl />
+    <div class="volume-and-tempo">
+      <VolumeControl />
+      <TempoControl />
+    </div>
+  </fieldset>
   <MediaSession />
 </music-player>
 
@@ -29,6 +31,10 @@ import TempoControl from "./music-player/tempo-control.astro";
     display: flex;
     flex-direction: column;
     gap: 0.375rem;
+
+    & fieldset {
+      display: contents;
+    }
   }
 
   .volume-and-tempo {

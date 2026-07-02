@@ -11,11 +11,11 @@ const { props } = Astro;
 ---
 
 <play-control {...props}>
-  <ControlButton class="play-pause" disabled>
+  <ControlButton class="play-pause">
     <ControlIcon class="play-icon" iconId="ph--play-fill" />
     <ControlIcon class="pause-icon" iconId="ph--pause-fill" hidden />
   </ControlButton>
-  <ControlBar class="seek-bar" min="0" max="100" value="0" step="any" disabled />
+  <ControlBar class="seek-bar" min="0" max="100" value="0" step="any" />
   <span class="current-time">0:00</span>
 </play-control>
 

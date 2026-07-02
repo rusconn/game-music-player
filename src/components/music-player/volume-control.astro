@@ -11,11 +11,11 @@ const { props } = Astro;
 ---
 
 <volume-control {...props}>
-  <ControlButton class="mute-button" disabled>
+  <ControlButton class="mute-button">
     <ControlIcon class="volume-icon" iconId="clarity--volume-up-solid" />
     <ControlIcon class="muted-icon" iconId="clarity--volume-mute-solid" hidden />
   </ControlButton>
-  <ControlBar class="volume-bar" min="0" max="100" step="5" value="100" disabled />
+  <ControlBar class="volume-bar" min="0" max="100" step="5" value="100" />
   <span class="volume-text">100</span>
 </volume-control>
 
