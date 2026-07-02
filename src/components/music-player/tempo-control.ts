@@ -1,6 +1,4 @@
 import type { TypedEvent } from "../../utils/types";
-import type { ControlBarElement } from "./control-primitives/bar";
-import type { ControlButtonElement } from "./control-primitives/button";
 
 declare global {
   interface HTMLElementTagNameMap {
@@ -24,8 +22,8 @@ type ResetDetail = {};
 type SeekDetail = { tempo: number };
 
 export class TempoControlElement extends HTMLElement {
-  #tempoButton!: ControlButtonElement;
-  #tempoBar!: ControlBarElement;
+  #tempoButton!: HTMLButtonElement;
+  #tempoBar!: HTMLInputElement;
   #tempoText!: HTMLSpanElement;
 
   connectedCallback() {
@@ -38,7 +36,7 @@ export class TempoControlElement extends HTMLElement {
     });
 
     this.#tempoBar.addEventListener("input", (e) => {
-      const input = e.currentTarget as ControlBarElement;
+      const input = e.currentTarget as HTMLInputElement;
       const value = Number(input.value);
       this.#dispatchEvent("tempo-control:seek", { tempo: value });
     });

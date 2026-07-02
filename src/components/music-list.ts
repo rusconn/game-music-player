@@ -2,7 +2,6 @@ import * as Music from "../models/music";
 import { formatSec } from "../utils/format";
 import type { TypedEvent } from "../utils/types";
 import type { PlaiyingBarsElement } from "./music-list/playing-bars";
-import type { LoadingCircleElement } from "./music-list/loading-circle";
 
 declare global {
   interface HTMLElementTagNameMap {
@@ -77,14 +76,14 @@ export class MusicListElement extends HTMLElement {
 
     const circle = this.#queryLoadingCircle(music);
     if (circle) {
-      circle.loading = true;
+      circle.hidden = false;
     }
   }
 
   completeLoading(music: Music.Music) {
     const circle = this.#queryLoadingCircle(music);
     if (circle) {
-      circle.loading = false;
+      circle.hidden = true;
     }
 
     this.#ul.removeAttribute("inert");
@@ -93,7 +92,7 @@ export class MusicListElement extends HTMLElement {
   failLoading(music: Music.Music) {
     const circle = this.#queryLoadingCircle(music);
     if (circle) {
-      circle.loading = false;
+      circle.hidden = true;
     }
 
     alert("Sorry, failed to load the music file.\nTry another browser.");
@@ -117,7 +116,7 @@ export class MusicListElement extends HTMLElement {
   }
 
   #queryLoadingCircle(music: Music.Music) {
-    return this.#queryRow(music)?.querySelector<LoadingCircleElement>("loading-circle");
+    return this.#queryRow(music)?.querySelector<HTMLDivElement>(".loading-circle");
   }
 
   #queryPlayingBars(music: Music.Music) {

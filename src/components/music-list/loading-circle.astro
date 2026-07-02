@@ -1,25 +1,17 @@
 ---
 import type { HTMLAttributes } from "astro/types";
 
-type Props = Omit<HTMLAttributes<"div">, "hidden">;
+type Props = Omit<HTMLAttributes<"div">, "class" | "hidden">;
 
 const { props } = Astro;
 ---
 
-<loading-circle {...props} hidden>
+<div class="loading-circle" {...props} hidden>
   <div class="loader"></div>
-</loading-circle>
-
-<script>
-  import { LoadingCircleElement } from "./loading-circle";
-
-  if (!customElements.get("loading-circle")) {
-    customElements.define("loading-circle", LoadingCircleElement);
-  }
-</script>
+</div>
 
 <style>
-  loading-circle {
+  .loading-circle {
     position: absolute;
     inset: 0;
     display: grid;
