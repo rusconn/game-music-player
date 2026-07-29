@@ -214,12 +214,15 @@ importers:
       '@astrojs/check':
         specifier: ^0.9.9
         version: 0.9.9(prettier-plugin-astro@0.14.1)(prettier@3.3.3)(typescript@5.6.3)
+      '@types/node':
+        specifier: ^24.13.3
+        version: 24.13.3
       '@vite-pwa/astro':
         specifier: ^1.2.0
-        version: 1.2.0(astro@7.0.3(@emnapi/core@1.11.1)(@emnapi/runtime@1.11.1)(rollup@4.62.2)(terser@5.48.0)(yaml@2.8.2))(vite-plugin-pwa@1.3.0(vite@8.1.0(esbuild@0.28.1)(terser@5.48.0)(yaml@2.8.2))(workbox-build@7.4.1)(workbox-window@7.4.1))
+        version: 1.2.0(astro@7.0.3(@emnapi/core@1.11.1)(@emnapi/runtime@1.11.1)(@types/node@24.13.3)(rollup@4.62.2)(terser@5.48.0)(yaml@2.8.2))(vite-plugin-pwa@1.3.0(vite@8.1.0(@types/node@24.13.3)(esbuild@0.28.1)(terser@5.48.0)(yaml@2.8.2))(workbox-build@7.4.1)(workbox-window@7.4.1))
       astro:
         specifier: ^7.0.3
-        version: 7.0.3(@emnapi/core@1.11.1)(@emnapi/runtime@1.11.1)(rollup@4.62.2)(terser@5.48.0)(yaml@2.8.2)
+        version: 7.0.3(@emnapi/core@1.11.1)(@emnapi/runtime@1.11.1)(@types/node@24.13.3)(rollup@4.62.2)(terser@5.48.0)(yaml@2.8.2)
       prettier:
         specifier: ^3.3.3
         version: 3.3.3
@@ -231,7 +234,7 @@ importers:
         version: 5.6.3
       vite-plugin-pwa:
         specifier: ^1.2.0
-        version: 1.3.0(vite@8.1.0(esbuild@0.28.1)(terser@5.48.0)(yaml@2.8.2))(workbox-build@7.4.1)(workbox-window@7.4.1)
+        version: 1.3.0(vite@8.1.0(@types/node@24.13.3)(esbuild@0.28.1)(terser@5.48.0)(yaml@2.8.2))(workbox-build@7.4.1)(workbox-window@7.4.1)
       workbox-window:
         specifier: ^7.4.1
         version: 7.4.1
@@ -1655,6 +1658,9 @@ packages:
 
   '@types/nlcst@2.0.3':
     resolution: {integrity: sha512-vSYNSDe6Ix3q+6Z7ri9lyWqgGhJTmzRjZRqyq15N0Z/1/UnVsno9G/N40NBijoYx2seFDIl0+B2mgAb9mezUCA==}
+
+  '@types/node@24.13.3':
+    resolution: {integrity: sha512-Dh8vAsV36ig5wa9OX4pXvMc9D3Veibfw2wix0CUwYODLD8nkj9UsLjASr49nPg+2eKzxhBV+v7L8pXvT4e639Q==}
 
   '@types/resolve@1.20.2':
     resolution: {integrity: sha512-60BCwRFOZCQhDncwQdxxeOEEkbc5dIMccYLwbxsS4TUNeVECQ/pBJ0j09mrHOl/JJvpRPGwO9SvE4nR2Nb/a4Q==}
@@ -3147,6 +3153,9 @@ packages:
 
   uncrypto@0.1.3:
     resolution: {integrity: sha512-Ql87qFHB3s/De2ClA9e0gsnS6zXG27SkTiSJwjCc9MebbfapQfuPzumMIUMi38ezPZVNFcHI9sUIepeQfw8J8Q==}
+
+  undici-types@7.18.2:
+    resolution: {integrity: sha512-AsuCzffGHJybSaRrmr5eHr81mwJU3kjw6M+uprWvCXiNeN9SOGwQ3Jn8jb8m3Z6izVgknn1R0FTCEAP2QrLY/w==}
 
   unicode-canonical-property-names-ecmascript@2.0.1:
     resolution: {integrity: sha512-dA8WbNeb2a6oQzAQ55YlT5vQAWGV9WXOsi3SskE3bcCdM0P4SDd+24zS/OCacdRq5BkdsRj9q3Pg6YyQoxIGqg==}
@@ -4933,6 +4942,10 @@ snapshots:
     dependencies:
       '@types/unist': 3.0.3
 
+  '@types/node@24.13.3':
+    dependencies:
+      undici-types: 7.18.2
+
   '@types/resolve@1.20.2': {}
 
   '@types/trusted-types@2.0.7': {}
@@ -4941,10 +4954,10 @@ snapshots:
 
   '@ungap/structured-clone@1.3.0': {}
 
-  '@vite-pwa/astro@1.2.0(astro@7.0.3(@emnapi/core@1.11.1)(@emnapi/runtime@1.11.1)(rollup@4.62.2)(terser@5.48.0)(yaml@2.8.2))(vite-plugin-pwa@1.3.0(vite@8.1.0(esbuild@0.28.1)(terser@5.48.0)(yaml@2.8.2))(workbox-build@7.4.1)(workbox-window@7.4.1))':
+  '@vite-pwa/astro@1.2.0(astro@7.0.3(@emnapi/core@1.11.1)(@emnapi/runtime@1.11.1)(@types/node@24.13.3)(rollup@4.62.2)(terser@5.48.0)(yaml@2.8.2))(vite-plugin-pwa@1.3.0(vite@8.1.0(@types/node@24.13.3)(esbuild@0.28.1)(terser@5.48.0)(yaml@2.8.2))(workbox-build@7.4.1)(workbox-window@7.4.1))':
     dependencies:
-      astro: 7.0.3(@emnapi/core@1.11.1)(@emnapi/runtime@1.11.1)(rollup@4.62.2)(terser@5.48.0)(yaml@2.8.2)
-      vite-plugin-pwa: 1.3.0(vite@8.1.0(esbuild@0.28.1)(terser@5.48.0)(yaml@2.8.2))(workbox-build@7.4.1)(workbox-window@7.4.1)
+      astro: 7.0.3(@emnapi/core@1.11.1)(@emnapi/runtime@1.11.1)(@types/node@24.13.3)(rollup@4.62.2)(terser@5.48.0)(yaml@2.8.2)
+      vite-plugin-pwa: 1.3.0(vite@8.1.0(@types/node@24.13.3)(esbuild@0.28.1)(terser@5.48.0)(yaml@2.8.2))(workbox-build@7.4.1)(workbox-window@7.4.1)
 
   '@volar/kit@2.4.28(typescript@5.6.3)':
     dependencies:
@@ -5043,7 +5056,7 @@ snapshots:
       get-intrinsic: 1.3.0
       is-array-buffer: 3.0.5
 
-  astro@7.0.3(@emnapi/core@1.11.1)(@emnapi/runtime@1.11.1)(rollup@4.62.2)(terser@5.48.0)(yaml@2.8.2):
+  astro@7.0.3(@emnapi/core@1.11.1)(@emnapi/runtime@1.11.1)(@types/node@24.13.3)(rollup@4.62.2)(terser@5.48.0)(yaml@2.8.2):
     dependencies:
       '@astrojs/compiler-rs': 0.2.3(@emnapi/core@1.11.1)(@emnapi/runtime@1.11.1)
       '@astrojs/internal-helpers': 0.10.0
@@ -5096,8 +5109,8 @@ snapshots:
       unist-util-visit: 5.1.0
       unstorage: 1.17.5
       vfile: 6.0.3
-      vite: 8.1.0(esbuild@0.28.1)(terser@5.48.0)(yaml@2.8.2)
-      vitefu: 1.1.3(vite@8.1.0(esbuild@0.28.1)(terser@5.48.0)(yaml@2.8.2))
+      vite: 8.1.0(@types/node@24.13.3)(esbuild@0.28.1)(terser@5.48.0)(yaml@2.8.2)
+      vitefu: 1.1.3(vite@8.1.0(@types/node@24.13.3)(esbuild@0.28.1)(terser@5.48.0)(yaml@2.8.2))
       xxhash-wasm: 1.1.0
       yargs-parser: 22.0.0
       zod: 4.4.3
@@ -6721,6 +6734,8 @@ snapshots:
 
   uncrypto@0.1.3: {}
 
+  undici-types@7.18.2: {}
+
   unicode-canonical-property-names-ecmascript@2.0.1: {}
 
   unicode-match-property-ecmascript@2.0.0:
@@ -6811,18 +6826,18 @@ snapshots:
       '@types/unist': 3.0.3
       vfile-message: 4.0.3
 
-  vite-plugin-pwa@1.3.0(vite@8.1.0(esbuild@0.28.1)(terser@5.48.0)(yaml@2.8.2))(workbox-build@7.4.1)(workbox-window@7.4.1):
+  vite-plugin-pwa@1.3.0(vite@8.1.0(@types/node@24.13.3)(esbuild@0.28.1)(terser@5.48.0)(yaml@2.8.2))(workbox-build@7.4.1)(workbox-window@7.4.1):
     dependencies:
       debug: 4.4.3
       pretty-bytes: 6.1.1
       tinyglobby: 0.2.17
-      vite: 8.1.0(esbuild@0.28.1)(terser@5.48.0)(yaml@2.8.2)
+      vite: 8.1.0(@types/node@24.13.3)(esbuild@0.28.1)(terser@5.48.0)(yaml@2.8.2)
       workbox-build: 7.4.1
       workbox-window: 7.4.1
     transitivePeerDependencies:
       - supports-color
 
-  vite@8.1.0(esbuild@0.28.1)(terser@5.48.0)(yaml@2.8.2):
+  vite@8.1.0(@types/node@24.13.3)(esbuild@0.28.1)(terser@5.48.0)(yaml@2.8.2):
     dependencies:
       lightningcss: 1.32.0
       picomatch: 4.0.4
@@ -6830,14 +6845,15 @@ snapshots:
       rolldown: 1.1.3
       tinyglobby: 0.2.17
     optionalDependencies:
+      '@types/node': 24.13.3
       esbuild: 0.28.1
       fsevents: 2.3.3
       terser: 5.48.0
       yaml: 2.8.2
 
-  vitefu@1.1.3(vite@8.1.0(esbuild@0.28.1)(terser@5.48.0)(yaml@2.8.2)):
+  vitefu@1.1.3(vite@8.1.0(@types/node@24.13.3)(esbuild@0.28.1)(terser@5.48.0)(yaml@2.8.2)):
     optionalDependencies:
-      vite: 8.1.0(esbuild@0.28.1)(terser@5.48.0)(yaml@2.8.2)
+      vite: 8.1.0(@types/node@24.13.3)(esbuild@0.28.1)(terser@5.48.0)(yaml@2.8.2)
 
   volar-service-css@0.0.70(@volar/language-service@2.4.28):
     dependencies:

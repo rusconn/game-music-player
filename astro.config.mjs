@@ -10,7 +10,12 @@ export default defineConfig({
       includeAssets: ["5-seconds-of-silence.mp3", "favicon.svg", "icons.svg"],
       workbox: {
         navigateFallback: "/",
-        globPatterns: ["**/*.{css,js,html,svg,png,ico,mp3,woff2}"],
+        // In dev mode, dev-dist/ contains no matching real files, causing
+        // a Workbox glob warning. Empty array avoids the warning.
+        globPatterns:
+          process.argv.includes("dev") || process.argv.includes("dev-server")
+            ? []
+            : ["**/*.{css,js,html,svg,png,ico,mp3,woff2}"],
       },
       devOptions: {
         enabled: true,
