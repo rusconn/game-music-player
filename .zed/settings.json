@@ -1,0 +1,27 @@
+{
+  "format_on_save": "on",
+  "formatter": "prettier",
+  "languages": {
+    "Astro": {
+      "language_servers": ["astro-language-server"],
+    },
+    "TypeScript": {
+      "language_servers": ["typescript-ls"],
+    },
+    "JavaScript": {
+      "language_servers": ["typescript-ls"],
+    },
+    "JSON": {
+      "language_servers": ["json-language-server"],
+    },
+    "JSONC": {
+      "language_servers": ["json-language-server"],
+    },
+    "YAML": {
+      "language_servers": ["yaml-language-server"],
+    },
+    "Markdown": {
+      "language_servers": [],
+    },
+  },
+}
