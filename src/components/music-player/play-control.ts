@@ -60,7 +60,10 @@ export class PlayControlElement extends HTMLElement {
   }
 
   set time(second: number) {
-    this.#currentTime.textContent = formatSec(second);
+    const text = formatSec(second);
+    if (this.#currentTime.textContent !== text) {
+      this.#currentTime.textContent = text;
+    }
     if (this.#durationValue && !this.#isUserSeeking) {
       this.#seekBar.value = second.toFixed(3);
     }
