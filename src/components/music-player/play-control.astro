@@ -1,13 +1,24 @@
 ---
 import type { HTMLAttributes } from "astro/types";
 
+import ControlButton from "./control-primitives/button.astro";
+import ControlIcon from "./control-primitives/icon.astro";
+import ControlBar from "./control-primitives/bar.astro";
+
 type Props = HTMLAttributes<"div">;
 
 const { props } = Astro;
 ---
 
 <play-control {...props}>
-  <slot />
+  <ControlButton class="play-pause">
+    <ControlIcon class="play-icon" iconId="ph--play-fill" />
+    <ControlIcon class="pause-icon" iconId="ph--pause-fill" hidden />
+  </ControlButton>
+  <slot name="volume" />
+  <slot name="tempo" />
+  <ControlBar class="seek-bar" min="0" max="100" value="0" step="any" />
+  <span class="current-time">0:00</span>
 </play-control>
 
 <script>
@@ -20,6 +31,9 @@ const { props } = Astro;
 
 <style>
   play-control {
-    display: contents;
+    display: grid;
+    grid-template-columns: auto auto auto 1fr auto;
+    align-items: center;
+    gap: 0.375rem;
   }
 </style>

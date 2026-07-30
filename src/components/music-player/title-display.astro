@@ -1,15 +1,15 @@
 ---
 import type { HTMLAttributes } from "astro/types";
 
-type Props = Omit<HTMLAttributes<"div">, "class">;
+type Props = HTMLAttributes<"div">;
 
 const { props } = Astro;
 ---
 
-<div class="title-display" {...props}>No music selected</div>
+<div {...props}>No music selected</div>
 
 <style>
-  .title-display {
+  div {
     white-space: nowrap;
     text-align: center;
     overflow-inline: hidden;
