@@ -179,7 +179,7 @@ export class MusicPlayerElement extends HTMLElement {
     switch (result.type) {
       case "success":
         this.#loadToUI(music);
-        this.#loadToMediaSettion(music);
+        this.#loadToMediaSession(music);
         this.#loadedMusic = music;
         this.#dispatchEvent("music-player:complete-loading", { music });
         break;
@@ -379,7 +379,7 @@ export class MusicPlayerElement extends HTMLElement {
     this.#controlsFieldset.disabled = false;
   }
 
-  #loadToMediaSettion(music: Music.Music) {
+  #loadToMediaSession(music: Music.Music) {
     this.#mediaSession.loadMetadata(music.metadata.common);
   }
 

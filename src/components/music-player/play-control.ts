@@ -29,7 +29,7 @@ export class PlayControlElement extends HTMLElement {
   #seekBar!: HTMLInputElement;
   #currentTime!: HTMLSpanElement;
 
-  #duraionValue = 0;
+  #durationValue = 0;
   #isUserSeeking = false;
 
   connectedCallback() {
@@ -61,14 +61,14 @@ export class PlayControlElement extends HTMLElement {
 
   set time(second: number) {
     this.#currentTime.textContent = formatSec(second);
-    if (this.#duraionValue && !this.#isUserSeeking) {
+    if (this.#durationValue && !this.#isUserSeeking) {
       this.#seekBar.value = second.toFixed(3);
     }
   }
 
   set duration(durationSecs: number) {
     this.#seekBar.max = durationSecs.toString();
-    this.#duraionValue = durationSecs;
+    this.#durationValue = durationSecs;
   }
 
   get min() {
