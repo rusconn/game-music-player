@@ -1,0 +1,33 @@
+---
+import type { HTMLAttributes } from "astro/types";
+
+type Props = Omit<HTMLAttributes<"div">, "class" | "hidden">;
+
+const { props } = Astro;
+---
+
+<div class="loaded-indicator" {...props} hidden>
+  <span class="dot"></span>
+</div>
+
+<style>
+  .loaded-indicator {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    pointer-events: none;
+
+    &[hidden] {
+      display: none;
+    }
+
+    .dot {
+      display: inline-block;
+      inline-size: 0.5rem;
+      block-size: 0.5rem;
+      border-radius: 50%;
+      background-color: currentColor;
+    }
+  }
+</style>

@@ -1,7 +1,6 @@
 import * as Music from "../models/music";
 import { formatSec } from "../utils/format";
 import type { TypedEvent } from "../utils/types";
-import type { PlaiyingBarsElement } from "./music-list/playing-bars";
 
 declare global {
   interface HTMLElementTagNameMap {
@@ -25,7 +24,7 @@ export class MusicListElement extends HTMLElement {
   #ul!: HTMLUListElement;
   #liTemplate!: HTMLTemplateElement;
 
-  #lastPlayedMusic: Music.Music | undefined;
+  #loadedMusic: Music.Music | undefined;
 
   connectedCallback() {
     this.#ul = this.querySelector("ul")!;
@@ -67,60 +66,51 @@ export class MusicListElement extends HTMLElement {
   startLoading(music: Music.Music) {
     this.#ul.setAttribute("inert", "");
 
-    if (this.#lastPlayedMusic) {
-      const bars = this.#queryPlayingBars(this.#lastPlayedMusic);
-      if (bars) {
-        bars.state = "idle";
+    if (this.#loadedMusic) {
+      const loaded = this.#queryLoadedIndicator(this.#loadedMusic);
+      if (loaded) {
+        loaded.hidden = true;
       }
     }
 
-    const circle = this.#queryLoadingCircle(music);
-    if (circle) {
-      circle.hidden = false;
+    const loading = this.#queryLoadingIndicator(music);
+    if (loading) {
+      loading.hidden = false;
     }
   }
 
   completeLoading(music: Music.Music) {
-    const circle = this.#queryLoadingCircle(music);
-    if (circle) {
-      circle.hidden = true;
+    const loading = this.#queryLoadingIndicator(music);
+    if (loading) {
+      loading.hidden = true;
     }
+
+    const loaded = this.#queryLoadedIndicator(music);
+    if (loaded) {
+      loaded.hidden = false;
+    }
+
+    this.#loadedMusic = music;
 
     this.#ul.removeAttribute("inert");
   }
 
   failLoading(music: Music.Music) {
-    const circle = this.#queryLoadingCircle(music);
-    if (circle) {
-      circle.hidden = true;
+    const loading = this.#queryLoadingIndicator(music);
+    if (loading) {
+      loading.hidden = true;
     }
 
     alert("Sorry, failed to load the music file.\nTry another browser.");
     this.#ul.removeAttribute("inert");
   }
 
-  toPlaying(music: Music.Music) {
-    const bars = this.#queryPlayingBars(music);
-    if (bars) {
-      bars.state = "playing";
-    }
-
-    this.#lastPlayedMusic = music;
+  #queryLoadingIndicator(music: Music.Music) {
+    return this.#queryRow(music)?.querySelector<HTMLElement>(".loading-indicator");
   }
 
-  toPaused(music: Music.Music) {
-    const bars = this.#queryPlayingBars(music);
-    if (bars) {
-      bars.state = "paused";
-    }
-  }
-
-  #queryLoadingCircle(music: Music.Music) {
-    return this.#queryRow(music)?.querySelector<HTMLDivElement>(".loading-circle");
-  }
-
-  #queryPlayingBars(music: Music.Music) {
-    return this.#queryRow(music)?.querySelector<PlaiyingBarsElement>("playing-bars");
+  #queryLoadedIndicator(music: Music.Music) {
+    return this.#queryRow(music)?.querySelector<HTMLElement>(".loaded-indicator");
   }
 
   #queryRow(music: Music.Music) {

@@ -26,12 +26,6 @@ import MusicList from "../components/music-list.astro";
   const uploader = document.querySelector("music-uploader")!;
   const list = document.querySelector("music-list")!;
 
-  player.addEventListener("music-player:play", (e) => {
-    list.toPlaying(e.detail.music);
-  });
-  player.addEventListener("music-player:pause", (e) => {
-    list.toPaused(e.detail.music);
-  });
   player.addEventListener("music-player:start-loading", (e) => {
     list.startLoading(e.detail.music);
   });

@@ -1,6 +1,6 @@
 ---
-import PlayingBars from "./music-list/playing-bars.astro";
-import LoadingCircle from "./music-list/loading-circle.astro";
+import LoadedIndicator from "./music-list/loaded-indicator.astro";
+import LoadingIndicator from "./music-list/loading-indicator.astro";
 ---
 
 <!-- table要素は行全体クリックの実現やスタイリングが難しかったので避けた -->
@@ -9,8 +9,8 @@ import LoadingCircle from "./music-list/loading-circle.astro";
     <template>
       <li>
         <div class="indicator">
-          <PlayingBars />
-          <LoadingCircle />
+          <LoadingIndicator />
+          <LoadedIndicator />
         </div>
         <button type="button" class="play-button">
           <span class="title"></span>
