@@ -1,6 +1,7 @@
 ---
 import type { HTMLAttributes } from "astro/types";
 
+import ControlPopup from "./control-primitives/popup.astro";
 import ControlButton from "./control-primitives/button.astro";
 import ControlIcon from "./control-primitives/icon.astro";
 import ControlBar from "./control-primitives/bar.astro";
@@ -11,16 +12,16 @@ const { props } = Astro;
 ---
 
 <tempo-control {...props}>
-  <button class="trigger" type="button" aria-haspopup="true" aria-expanded="false">
+  <button class="trigger" type="button" popovertarget="tempo-popup">
     <ControlIcon class="tempo-icon" iconId="mdi--metronome" />
   </button>
-  <div class="popup">
+  <ControlPopup id="tempo-popup">
     <ControlButton class="tempo-button">
       <ControlIcon class="tempo-icon" iconId="mdi--metronome" />
     </ControlButton>
     <ControlBar class="tempo-bar" min="0.5" max="1.5" value="1" step="0.01" />
     <span class="tempo-text">1.00</span>
-  </div>
+  </ControlPopup>
 </tempo-control>
 
 <script>
@@ -33,7 +34,6 @@ const { props } = Astro;
 
 <style>
   tempo-control {
-    position: relative;
     display: flex;
     align-items: center;
   }
@@ -63,38 +63,7 @@ const { props } = Astro;
     }
   }
 
-  .popup {
-    display: none;
-    position: absolute;
-    top: calc(100% + 0.5rem);
-    left: 0;
-    min-inline-size: 180px;
-    padding: 0.5rem;
-    background: #333;
-    border: 1px solid #555;
-    border-radius: 0.375rem;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
-    z-index: 10;
-    grid-template-columns: auto 1fr auto;
-    align-items: center;
-    gap: 0.375rem;
-  }
-
-  tempo-control.show-popup .popup {
-    display: grid;
-  }
-
-  .popup::before {
-    content: "";
-    position: absolute;
-    top: -8px;
-    left: 0.1rem;
-    border-left: 7px solid transparent;
-    border-right: 7px solid transparent;
-    border-bottom: 8px solid #333;
-  }
-
-  .popup .tempo-button {
+  .tempo-button {
     inline-size: 1.125rem;
   }
 </style>

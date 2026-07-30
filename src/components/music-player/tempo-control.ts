@@ -23,26 +23,28 @@ type SeekDetail = { tempo: number };
 
 export class TempoControlElement extends HTMLElement {
   #trigger!: HTMLButtonElement;
-  #triggerTempoIcon!: HTMLSpanElement;
 
   #popup!: HTMLDivElement;
   #tempoButton!: HTMLButtonElement;
   #tempoBar!: HTMLInputElement;
   #popupTempoText!: HTMLSpanElement;
 
-  #popupOpen = false;
-
   connectedCallback() {
     this.#trigger = this.querySelector(".trigger")!;
-    this.#triggerTempoIcon = this.#trigger.querySelector(".tempo-icon")!;
 
     this.#popup = this.querySelector(".popup")!;
     this.#tempoButton = this.#popup.querySelector(".tempo-button")!;
     this.#tempoBar = this.#popup.querySelector(".tempo-bar")!;
     this.#popupTempoText = this.#popup.querySelector(".tempo-text")!;
 
-    this.#trigger.addEventListener("click", () => {
-      this.togglePopup();
+    this.#popup.addEventListener("beforetoggle", (e: Event) => {
+      const toggleEvent = e as ToggleEvent;
+      if (toggleEvent.newState === "open") {
+        const rect = this.#trigger.getBoundingClientRect();
+        this.#popup.style.position = "fixed";
+        this.#popup.style.top = `${rect.bottom + 8}px`;
+        this.#popup.style.left = `${rect.left}px`;
+      }
     });
 
     this.#tempoButton.addEventListener("click", () => {
@@ -53,18 +55,6 @@ export class TempoControlElement extends HTMLElement {
       const input = e.currentTarget as HTMLInputElement;
       const value = Number(input.value);
       this.#dispatchEvent("tempo-control:seek", { tempo: value });
-    });
-
-    document.addEventListener("click", (e) => {
-      if (this.#popupOpen && !this.contains(e.target as Node)) {
-        this.closePopup();
-      }
-    });
-
-    document.addEventListener("keydown", (e) => {
-      if (e.key === "Escape" && this.#popupOpen) {
-        this.closePopup();
-      }
     });
   }
 
@@ -84,18 +74,6 @@ export class TempoControlElement extends HTMLElement {
 
   get max() {
     return Number(this.#tempoBar.max);
-  }
-
-  togglePopup() {
-    this.#popupOpen = !this.#popupOpen;
-    this.classList.toggle("show-popup", this.#popupOpen);
-    this.#trigger.setAttribute("aria-expanded", String(this.#popupOpen));
-  }
-
-  closePopup() {
-    this.#popupOpen = false;
-    this.classList.remove("show-popup");
-    this.#trigger.setAttribute("aria-expanded", "false");
   }
 
   #dispatchEvent<Type extends keyof TempoControlEventMap>(

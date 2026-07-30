@@ -1,0 +1,50 @@
+---
+type Props = {
+  id: string;
+};
+
+const { id } = Astro.props;
+---
+
+<div class="popup" id={id} popover="auto">
+  <div class="popup-inner">
+    <slot />
+  </div>
+  <div class="popup-tail" aria-hidden="true"></div>
+</div>
+
+<style>
+  .popup {
+    inset: unset;
+    margin: 0;
+    overflow: visible;
+    position: absolute;
+    z-index: 10;
+    color: inherit;
+    padding: 0.5rem;
+    background: #333;
+    border: 1px solid #555;
+    border-radius: 0.375rem;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+  }
+
+  .popup-inner {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: center;
+    gap: 0.375rem;
+    min-inline-size: 180px;
+    inline-size: 180px;
+  }
+
+  .popup-tail {
+    position: absolute;
+    top: -8px;
+    left: 0.1rem;
+    inline-size: 0;
+    block-size: 0;
+    border-left: 7px solid transparent;
+    border-right: 7px solid transparent;
+    border-bottom: 8px solid #333;
+  }
+</style>

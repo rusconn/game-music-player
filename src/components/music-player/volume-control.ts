@@ -33,8 +33,6 @@ export class VolumeControlElement extends HTMLElement {
   #volumeBar!: HTMLInputElement;
   #popupVolumeText!: HTMLSpanElement;
 
-  #popupOpen = false;
-
   connectedCallback() {
     this.#trigger = this.querySelector(".trigger")!;
     this.#triggerVolumeIcon = this.#trigger.querySelector(".volume-icon")!;
@@ -47,8 +45,14 @@ export class VolumeControlElement extends HTMLElement {
     this.#volumeBar = this.#popup.querySelector(".volume-bar")!;
     this.#popupVolumeText = this.#popup.querySelector(".volume-text")!;
 
-    this.#trigger.addEventListener("click", () => {
-      this.togglePopup();
+    this.#popup.addEventListener("beforetoggle", (e: Event) => {
+      const toggleEvent = e as ToggleEvent;
+      if (toggleEvent.newState === "open") {
+        const rect = this.#trigger.getBoundingClientRect();
+        this.#popup.style.position = "fixed";
+        this.#popup.style.top = `${rect.bottom + 8}px`;
+        this.#popup.style.left = `${rect.left}px`;
+      }
     });
 
     this.#muteButton.addEventListener("click", () => {
@@ -59,18 +63,6 @@ export class VolumeControlElement extends HTMLElement {
       const input = e.currentTarget as HTMLInputElement;
       const value = Number(input.value);
       this.#dispatchEvent("volume-control:seek", { volume: value });
-    });
-
-    document.addEventListener("click", (e) => {
-      if (this.#popupOpen && !this.contains(e.target as Node)) {
-        this.closePopup();
-      }
-    });
-
-    document.addEventListener("keydown", (e) => {
-      if (e.key === "Escape" && this.#popupOpen) {
-        this.closePopup();
-      }
     });
   }
 
@@ -104,18 +96,6 @@ export class VolumeControlElement extends HTMLElement {
       this.#popupVolumeIcon.hidden = false;
       this.#popupMutedIcon.hidden = true;
     }
-  }
-
-  togglePopup() {
-    this.#popupOpen = !this.#popupOpen;
-    this.classList.toggle("show-popup", this.#popupOpen);
-    this.#trigger.setAttribute("aria-expanded", String(this.#popupOpen));
-  }
-
-  closePopup() {
-    this.#popupOpen = false;
-    this.classList.remove("show-popup");
-    this.#trigger.setAttribute("aria-expanded", "false");
   }
 
   #dispatchEvent<Type extends keyof VolumeControlEventMap>(
