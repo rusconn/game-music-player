@@ -186,35 +186,7 @@ export class AudioPlayer extends EventTarget {
     this.#gainNode //
       .connect(this.#muteNode)
       .connect(this.#context.destination);
-
-    requestAnimationFrame(this.#updateTimes);
   }
-
-  // NOTE: requestAnimationFrame may not be executed if the page is inactive
-  #updateTimes = () => {
-    if (!this.#context || !this.#sourceNode) {
-      throw new Error("bug");
-    }
-
-    const currentTime = this.currentTime;
-
-    if (currentTime != null) {
-      const isLooping = this.#sourceNode.loop && this.#sourceNode.loopEnd > 0;
-      const isOverDuration =
-        !isLooping && this.#audioDuration > 0 && currentTime >= this.#audioDuration;
-
-      if (
-        (isLooping &&
-          this.#accElapsedTime + this.#intervalElapsedTime() >= this.#sourceNode.loopEnd) ||
-        isOverDuration
-      ) {
-        this.#accElapsedTime = currentTime;
-        this.#intervalStartTime = this.#context.currentTime;
-      }
-    }
-
-    requestAnimationFrame(this.#updateTimes);
-  };
 
   async play(): Promise<PlayResult> {
     switch (this.#state) {
