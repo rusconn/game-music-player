@@ -22,14 +22,28 @@ type ResetDetail = {};
 type SeekDetail = { tempo: number };
 
 export class TempoControlElement extends HTMLElement {
+  #trigger!: HTMLButtonElement;
+  #triggerTempoIcon!: HTMLSpanElement;
+
+  #popup!: HTMLDivElement;
   #tempoButton!: HTMLButtonElement;
   #tempoBar!: HTMLInputElement;
-  #tempoText!: HTMLSpanElement;
+  #popupTempoText!: HTMLSpanElement;
+
+  #popupOpen = false;
 
   connectedCallback() {
-    this.#tempoButton = this.querySelector(".tempo-button")!;
-    this.#tempoBar = this.querySelector(".tempo-bar")!;
-    this.#tempoText = this.querySelector(".tempo-text")!;
+    this.#trigger = this.querySelector(".trigger")!;
+    this.#triggerTempoIcon = this.#trigger.querySelector(".tempo-icon")!;
+
+    this.#popup = this.querySelector(".popup")!;
+    this.#tempoButton = this.#popup.querySelector(".tempo-button")!;
+    this.#tempoBar = this.#popup.querySelector(".tempo-bar")!;
+    this.#popupTempoText = this.#popup.querySelector(".tempo-text")!;
+
+    this.#trigger.addEventListener("click", () => {
+      this.togglePopup();
+    });
 
     this.#tempoButton.addEventListener("click", () => {
       this.#dispatchEvent("tempo-control:reset", {});
@@ -40,6 +54,18 @@ export class TempoControlElement extends HTMLElement {
       const value = Number(input.value);
       this.#dispatchEvent("tempo-control:seek", { tempo: value });
     });
+
+    document.addEventListener("click", (e) => {
+      if (this.#popupOpen && !this.contains(e.target as Node)) {
+        this.closePopup();
+      }
+    });
+
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape" && this.#popupOpen) {
+        this.closePopup();
+      }
+    });
   }
 
   get tempo() {
@@ -49,7 +75,7 @@ export class TempoControlElement extends HTMLElement {
   set tempo(tempo: number) {
     const tempoValue = tempo.toFixed(2);
     this.#tempoBar.value = tempoValue;
-    this.#tempoText.textContent = tempoValue;
+    this.#popupTempoText.textContent = tempoValue;
   }
 
   get min() {
@@ -58,6 +84,18 @@ export class TempoControlElement extends HTMLElement {
 
   get max() {
     return Number(this.#tempoBar.max);
+  }
+
+  togglePopup() {
+    this.#popupOpen = !this.#popupOpen;
+    this.classList.toggle("show-popup", this.#popupOpen);
+    this.#trigger.setAttribute("aria-expanded", String(this.#popupOpen));
+  }
+
+  closePopup() {
+    this.#popupOpen = false;
+    this.classList.remove("show-popup");
+    this.#trigger.setAttribute("aria-expanded", "false");
   }
 
   #dispatchEvent<Type extends keyof TempoControlEventMap>(

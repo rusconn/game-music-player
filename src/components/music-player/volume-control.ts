@@ -22,18 +22,34 @@ type ToggleDetail = {};
 type SeekDetail = { volume: number };
 
 export class VolumeControlElement extends HTMLElement {
+  #trigger!: HTMLButtonElement;
+  #triggerVolumeIcon!: HTMLSpanElement;
+  #triggerMutedIcon!: HTMLSpanElement;
+
+  #popup!: HTMLDivElement;
   #muteButton!: HTMLButtonElement;
-  #volumeIcon!: HTMLSpanElement;
-  #mutedIcon!: HTMLSpanElement;
+  #popupVolumeIcon!: HTMLSpanElement;
+  #popupMutedIcon!: HTMLSpanElement;
   #volumeBar!: HTMLInputElement;
-  #volumeText!: HTMLSpanElement;
+  #popupVolumeText!: HTMLSpanElement;
+
+  #popupOpen = false;
 
   connectedCallback() {
-    this.#muteButton = this.querySelector(".mute-button")!;
-    this.#volumeIcon = this.#muteButton.querySelector(".volume-icon")!;
-    this.#mutedIcon = this.#muteButton.querySelector(".muted-icon")!;
-    this.#volumeBar = this.querySelector(".volume-bar")!;
-    this.#volumeText = this.querySelector(".volume-text")!;
+    this.#trigger = this.querySelector(".trigger")!;
+    this.#triggerVolumeIcon = this.#trigger.querySelector(".volume-icon")!;
+    this.#triggerMutedIcon = this.#trigger.querySelector(".muted-icon")!;
+
+    this.#popup = this.querySelector(".popup")!;
+    this.#muteButton = this.#popup.querySelector(".mute-button")!;
+    this.#popupVolumeIcon = this.#muteButton.querySelector(".volume-icon")!;
+    this.#popupMutedIcon = this.#muteButton.querySelector(".muted-icon")!;
+    this.#volumeBar = this.#popup.querySelector(".volume-bar")!;
+    this.#popupVolumeText = this.#popup.querySelector(".volume-text")!;
+
+    this.#trigger.addEventListener("click", () => {
+      this.togglePopup();
+    });
 
     this.#muteButton.addEventListener("click", () => {
       this.#dispatchEvent("volume-control:toggle", {});
@@ -44,6 +60,18 @@ export class VolumeControlElement extends HTMLElement {
       const value = Number(input.value);
       this.#dispatchEvent("volume-control:seek", { volume: value });
     });
+
+    document.addEventListener("click", (e) => {
+      if (this.#popupOpen && !this.contains(e.target as Node)) {
+        this.closePopup();
+      }
+    });
+
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape" && this.#popupOpen) {
+        this.closePopup();
+      }
+    });
   }
 
   get volume() {
@@ -53,7 +81,7 @@ export class VolumeControlElement extends HTMLElement {
   set volume(volume: number) {
     const volumeValue = volume.toString();
     this.#volumeBar.value = volumeValue;
-    this.#volumeText.textContent = volumeValue;
+    this.#popupVolumeText.textContent = volumeValue;
   }
 
   get min() {
@@ -66,12 +94,28 @@ export class VolumeControlElement extends HTMLElement {
 
   set muted(muted: boolean) {
     if (muted) {
-      this.#volumeIcon.hidden = true;
-      this.#mutedIcon.hidden = false;
+      this.#triggerVolumeIcon.hidden = true;
+      this.#triggerMutedIcon.hidden = false;
+      this.#popupVolumeIcon.hidden = true;
+      this.#popupMutedIcon.hidden = false;
     } else {
-      this.#volumeIcon.hidden = false;
-      this.#mutedIcon.hidden = true;
+      this.#triggerVolumeIcon.hidden = false;
+      this.#triggerMutedIcon.hidden = true;
+      this.#popupVolumeIcon.hidden = false;
+      this.#popupMutedIcon.hidden = true;
     }
+  }
+
+  togglePopup() {
+    this.#popupOpen = !this.#popupOpen;
+    this.classList.toggle("show-popup", this.#popupOpen);
+    this.#trigger.setAttribute("aria-expanded", String(this.#popupOpen));
+  }
+
+  closePopup() {
+    this.#popupOpen = false;
+    this.classList.remove("show-popup");
+    this.#trigger.setAttribute("aria-expanded", "false");
   }
 
   #dispatchEvent<Type extends keyof VolumeControlEventMap>(
