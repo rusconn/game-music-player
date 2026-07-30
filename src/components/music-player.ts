@@ -54,6 +54,7 @@ export class MusicPlayerElement extends HTMLElement {
   #audioPlayer = new AudioPlayer();
   #loadedMusic: Music.Music | undefined;
   #updateDisplayRequestId = 0;
+  #framesUntilUpdate = 0;
 
   connectedCallback() {
     this.#setupMediaSession();
@@ -392,7 +393,10 @@ export class MusicPlayerElement extends HTMLElement {
   }
 
   #updateCurrentTime = () => {
-    this.#playControl.time = this.#audioPlayer.currentTime ?? 0;
+    if (--this.#framesUntilUpdate <= 0) {
+      this.#framesUntilUpdate = 3;
+      this.#playControl.time = this.#audioPlayer.currentTime ?? 0;
+    }
     this.#updateDisplayRequestId = requestAnimationFrame(this.#updateCurrentTime);
   };
 
