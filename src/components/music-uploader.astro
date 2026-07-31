@@ -1,7 +1,7 @@
 <music-uploader>
   <input type="file" accept="audio/*" multiple hidden />
-  <button type="button">
-    <svg>
+  <button type="button" class="upload-button">
+    <svg class="icon">
       <use href="/icons.svg#fa6-solid--plus"></use>
     </svg>
   </button>
@@ -19,32 +19,30 @@
   music-uploader {
     display: flex;
     justify-content: center;
+  }
 
-    button {
-      display: inline-flex;
-      padding: 0.35rem;
-      block-size: 1.75rem;
-      border-radius: 100vmax;
-      border: none;
-      color: inherit;
-      cursor: pointer;
-      background-color: #3a3a3a;
-      max-inline-size: 43%;
+  .upload-button {
+    display: inline-flex;
+    padding: 0.35rem;
+    block-size: 1.75rem;
+    border-radius: 100vmax;
+    border: none;
+    color: inherit;
+    cursor: pointer;
+    background-color: #3a3a3a;
+    max-inline-size: 43%;
 
-      &:hover {
-        filter: brightness(1.2);
-      }
-
-      svg {
-        fill: currentColor;
-        inline-size: 100%;
-        block-size: 100%;
-      }
+    &:hover {
+      filter: brightness(1.2);
     }
   }
-  :global(.mobile) music-uploader {
-    button {
-      background-color: #282828;
-    }
+  :global(.mobile) .upload-button {
+    background-color: #282828;
+  }
+
+  .icon {
+    fill: currentColor;
+    inline-size: 100%;
+    block-size: 100%;
   }
 </style>
