@@ -28,6 +28,7 @@ export class PlayControlElement extends HTMLElement {
   #pauseIcon!: HTMLSpanElement;
   #seekBar!: HTMLInputElement;
   #currentTime!: HTMLSpanElement;
+  #durationDisplay!: HTMLSpanElement;
 
   #durationValue = 0;
   #isUserSeeking = false;
@@ -38,6 +39,7 @@ export class PlayControlElement extends HTMLElement {
     this.#pauseIcon = this.#playPause.querySelector(".pause-icon")!;
     this.#seekBar = this.querySelector(".seek-bar")!;
     this.#currentTime = this.querySelector(".current-time")!;
+    this.#durationDisplay = this.querySelector(".duration")!;
 
     this.#playPause.addEventListener("click", () => {
       this.#dispatchEvent("play-control:toggle", {});
@@ -72,6 +74,8 @@ export class PlayControlElement extends HTMLElement {
   set duration(durationSecs: number) {
     this.#seekBar.max = durationSecs.toString();
     this.#durationValue = durationSecs;
+    const text = formatSec(durationSecs);
+    this.#durationDisplay.textContent = text;
   }
 
   get min() {

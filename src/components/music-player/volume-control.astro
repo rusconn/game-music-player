@@ -17,12 +17,12 @@ const { props } = Astro;
     <ControlIcon class="muted-icon" iconId="clarity--volume-mute-solid" hidden />
   </button>
   <ControlPopup id="volume-popup">
+    <span class="volume-text">100</span>
+    <ControlBar class="volume-bar" min="0" max="100" step="5" value="100" />
     <ControlButton class="mute-button">
       <ControlIcon class="volume-icon" iconId="clarity--volume-up-solid" />
       <ControlIcon class="muted-icon" iconId="clarity--volume-mute-solid" hidden />
     </ControlButton>
-    <ControlBar class="volume-bar" min="0" max="100" step="5" value="100" />
-    <span class="volume-text">100</span>
   </ControlPopup>
 </volume-control>
 
@@ -45,8 +45,8 @@ const { props } = Astro;
     align-items: center;
     justify-content: center;
     position: relative;
-    inline-size: 1.125rem;
-    block-size: 1.125rem;
+    inline-size: 1.375rem;
+    block-size: 1.375rem;
     cursor: pointer;
     background: none;
     border: none;
@@ -66,10 +66,18 @@ const { props } = Astro;
   }
 
   .mute-button {
-    inline-size: 1.125rem;
+    inline-size: 1.375rem;
+  }
+
+  .volume-bar {
+    writing-mode: vertical-lr;
+    direction: rtl;
+    inline-size: 7rem;
+    block-size: 1.5rem;
   }
 
   .volume-text {
     min-inline-size: 2rem;
+    text-align: center;
   }
 </style>
