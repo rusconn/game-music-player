@@ -7,14 +7,6 @@
   </button>
 </music-uploader>
 
-<script>
-  import { MusicUploaderElement } from "./music-uploader";
-
-  if (!customElements.get("music-uploader")) {
-    customElements.define("music-uploader", MusicUploaderElement);
-  }
-</script>
-
 <style>
   music-uploader {
     display: flex;
@@ -46,3 +38,11 @@
     block-size: 100%;
   }
 </style>
+
+<script>
+  import { MusicUploaderElement } from "./music-uploader";
+
+  if (!customElements.get("music-uploader")) {
+    customElements.define("music-uploader", MusicUploaderElement);
+  }
+</script>

@@ -21,14 +21,6 @@ import LoadingIndicator from "./music-list/loading-indicator.astro";
   </ul>
 </music-list>
 
-<script>
-  import { MusicListElement } from "./music-list";
-
-  if (!customElements.get("music-list")) {
-    customElements.define("music-list", MusicListElement);
-  }
-</script>
-
 <style>
   music-list {
     padding-inline: clamp(0.375rem, -0.287rem + 2.82vw, 1.125rem);
@@ -84,3 +76,11 @@ import LoadingIndicator from "./music-list/loading-indicator.astro";
     text-align: end;
   }
 </style>
+
+<script>
+  import { MusicListElement } from "./music-list";
+
+  if (!customElements.get("music-list")) {
+    customElements.define("music-list", MusicListElement);
+  }
+</script>

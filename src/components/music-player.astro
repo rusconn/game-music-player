@@ -17,14 +17,6 @@ import TempoControl from "./music-player/tempo-control.astro";
   <MediaSession hidden aria-hidden="true" />
 </music-player>
 
-<script>
-  import { MusicPlayerElement } from "./music-player";
-
-  if (!customElements.get("music-player")) {
-    customElements.define("music-player", MusicPlayerElement);
-  }
-</script>
-
 <style>
   music-player {
     display: block;
@@ -37,3 +29,11 @@ import TempoControl from "./music-player/tempo-control.astro";
     border: none;
   }
 </style>
+
+<script>
+  import { MusicPlayerElement } from "./music-player";
+
+  if (!customElements.get("music-player")) {
+    customElements.define("music-player", MusicPlayerElement);
+  }
+</script>

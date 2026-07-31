@@ -25,14 +25,6 @@ const { props } = Astro;
   <slot name="tempo" />
 </play-control>
 
-<script>
-  import { PlayControlElement } from "./play-control";
-
-  if (!customElements.get("play-control")) {
-    customElements.define("play-control", PlayControlElement);
-  }
-</script>
-
 <style>
   play-control {
     display: grid;
@@ -46,3 +38,11 @@ const { props } = Astro;
     gap: 0.25rem;
   }
 </style>
+
+<script>
+  import { PlayControlElement } from "./play-control";
+
+  if (!customElements.get("play-control")) {
+    customElements.define("play-control", PlayControlElement);
+  }
+</script>

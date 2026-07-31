@@ -21,31 +21,6 @@ import MusicList from "../components/music-list.astro";
   </main>
 </Layout>
 
-<script>
-  const player = document.querySelector("music-player")!;
-  const uploader = document.querySelector("music-uploader")!;
-  const list = document.querySelector("music-list")!;
-
-  player.addEventListener("music-player:start-loading", (e) => {
-    list.startLoading(e.detail.music);
-  });
-  player.addEventListener("music-player:complete-loading", async (e) => {
-    list.completeLoading(e.detail.music);
-    await player.play();
-  });
-  player.addEventListener("music-player:fail-loading", (e) => {
-    list.failLoading(e.detail.music);
-  });
-
-  uploader.addEventListener("music-uploader:upload-files", async (e) => {
-    await list.add(e.detail.files);
-  });
-
-  list.addEventListener("music-list:select", async (e) => {
-    await player.load(e.detail.music);
-  });
-</script>
-
 <style>
   main {
     display: grid;
@@ -85,3 +60,28 @@ import MusicList from "../components/music-list.astro";
     padding: 1.25rem;
   }
 </style>
+
+<script>
+  const player = document.querySelector("music-player")!;
+  const uploader = document.querySelector("music-uploader")!;
+  const list = document.querySelector("music-list")!;
+
+  player.addEventListener("music-player:start-loading", (e) => {
+    list.startLoading(e.detail.music);
+  });
+  player.addEventListener("music-player:complete-loading", async (e) => {
+    list.completeLoading(e.detail.music);
+    await player.play();
+  });
+  player.addEventListener("music-player:fail-loading", (e) => {
+    list.failLoading(e.detail.music);
+  });
+
+  uploader.addEventListener("music-uploader:upload-files", async (e) => {
+    await list.add(e.detail.files);
+  });
+
+  list.addEventListener("music-list:select", async (e) => {
+    await player.load(e.detail.music);
+  });
+</script>

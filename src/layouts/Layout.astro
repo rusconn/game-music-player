@@ -18,18 +18,6 @@ import { pwaInfo } from "virtual:pwa-info";
   </body>
 </html>
 
-<script>
-  import * as StorageMigrator from "../storage/migrator";
-
-  StorageMigrator.migrateIfNeeded();
-
-  const isMobile = /iPhone|Android|Mobile|iPad|iPod/i.test(navigator.userAgent);
-
-  if (isMobile) {
-    document.body.classList.add("mobile");
-  }
-</script>
-
 <style is:global>
   * {
     margin: 0;
@@ -64,3 +52,15 @@ import { pwaInfo } from "virtual:pwa-info";
     }
   }
 </style>
+
+<script>
+  import * as StorageMigrator from "../storage/migrator";
+
+  StorageMigrator.migrateIfNeeded();
+
+  const isMobile = /iPhone|Android|Mobile|iPad|iPod/i.test(navigator.userAgent);
+
+  if (isMobile) {
+    document.body.classList.add("mobile");
+  }
+</script>
